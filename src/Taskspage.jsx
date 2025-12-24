@@ -16,7 +16,7 @@ import {
   MessageCircle,
   MapPin,
 } from "lucide-react";
-import { useAppContext, STATUSES, SOURCES } from "./App";
+import { useAppContext, STATUSES, SOURCES, EVENT_TYPES } from "./App";
 
 export default function TasksPage() {
   const { leads, updateLead } = useAppContext();
@@ -25,9 +25,10 @@ export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortConfig, setSortConfig] = useState({
     key: "nextCallDate",
-    direction: "asc", // Default: oldest calls first (urgent)
+    direction: "asc",
   });
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(null);
+  const [eventTypeDropdownOpen, setEventTypeDropdownOpen] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLead, setEditingLead] = useState(null);
 
@@ -46,14 +47,20 @@ export default function TasksPage() {
     setStatusDropdownOpen(null);
   };
 
+  const handleQuickEventTypeChange = async (leadId, newEventType) => {
+    const lead = leads.find((l) => l.id === leadId);
+    if (!lead) return;
+
+    await updateLead(leadId, { ...lead, eventType: newEventType });
+    setEventTypeDropdownOpen(null);
+  };
+
   const getDropdownPosition = (buttonElement) => {
     if (!buttonElement) return "bottom";
-
     const rect = buttonElement.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
     const spaceBelow = viewportHeight - rect.bottom;
     const spaceAbove = rect.top;
-
     return spaceBelow < 200 && spaceAbove > spaceBelow ? "top" : "bottom";
   };
 
@@ -61,7 +68,6 @@ export default function TasksPage() {
   const sortedAndFilteredLeads = useMemo(() => {
     let sortableLeads = [...leads];
 
-    // Filter to show only active leads (status 1 or 2)
     sortableLeads = sortableLeads.filter((lead) => {
       const isActiveStatus =
         Number(lead.status) === 1 || Number(lead.status) === 2;
@@ -75,7 +81,6 @@ export default function TasksPage() {
       return isActiveStatus && matchesSearch && matchesStatus;
     });
 
-    // Sorting
     if (sortConfig.key !== null) {
       sortableLeads.sort((a, b) => {
         const aValue = a[sortConfig.key] || "";
@@ -89,7 +94,6 @@ export default function TasksPage() {
     return sortableLeads;
   }, [leads, searchTerm, statusFilter, sortConfig]);
 
-  // Calculate urgent tasks
   const today = new Date().toISOString().split("T")[0];
   const urgentCount = sortedAndFilteredLeads.filter(
     (l) => l.nextCallDate && l.nextCallDate <= today
@@ -124,48 +128,51 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="space-y-4 lg:space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
       {/* Header */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 lg:gap-4">
         <div>
-          <h2 className="text-3xl font-black text-slate-800">
+          <h2 className="text-2xl lg:text-3xl font-black text-slate-800">
             משימות ופולואפים
           </h2>
-          <p className="text-slate-400 font-bold text-sm">
+          <p className="text-slate-400 font-bold text-xs lg:text-sm">
             ניהול מעקבים אחרי לידים פעילים
           </p>
         </div>
         {urgentCount > 0 && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-700 px-6 py-3 rounded-xl font-black flex items-center gap-2">
-            <AlertCircle size={20} />
-            {urgentCount} משימות דחופות להיום!
+          <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 lg:px-6 py-2 lg:py-3 rounded-xl font-black flex items-center gap-2 text-sm lg:text-base">
+            <AlertCircle size={18} className="lg:hidden" />
+            <AlertCircle size={20} className="hidden lg:block" />
+            <span className="text-xs lg:text-base">
+              {urgentCount} משימות דחופות!
+            </span>
           </div>
         )}
       </header>
 
       {/* Filters Row */}
-      <div className="flex flex-wrap gap-3 items-center bg-white p-3 rounded-2xl border shadow-sm">
-        <div className="relative flex-1 min-w-[300px]">
+      <div className="flex flex-col sm:flex-row gap-2 lg:gap-3 items-stretch sm:items-center bg-white p-3 rounded-xl lg:rounded-2xl border shadow-sm">
+        <div className="relative flex-1">
           <Search
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+            className="absolute right-3 lg:right-4 top-1/2 -translate-y-1/2 text-slate-400"
             size={16}
           />
           <input
             type="text"
-            placeholder="חיפוש מהיר לפי שם, טלפון, עיר..."
-            className="w-full pr-10 pl-4 py-3 bg-slate-50 border-none rounded-xl outline-none font-bold text-sm"
+            placeholder="חיפוש..."
+            className="w-full pr-9 lg:pr-10 pl-3 lg:pl-4 py-2.5 lg:py-3 bg-slate-50 border-none rounded-lg lg:rounded-xl outline-none font-bold text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
+        <div className="flex items-center gap-2 bg-slate-50 px-3 lg:px-4 py-2.5 lg:py-3 rounded-lg lg:rounded-xl border border-slate-100">
           <Filter size={16} className="text-slate-400" />
           <select
-            className="bg-transparent border-none outline-none font-black text-slate-600 cursor-pointer text-sm"
+            className="bg-transparent border-none outline-none font-black text-slate-600 cursor-pointer text-xs lg:text-sm"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <option value="all">כל הסטטוסים</option>
+            <option value="all">הכל</option>
             <option value="1">חדש</option>
             <option value="2">בתהליך</option>
           </select>
@@ -173,40 +180,62 @@ export default function TasksPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
-          <div className="text-sm font-bold text-blue-600 mb-1">
-            לידים חדשים
+      <div className="grid grid-cols-3 gap-2 lg:gap-4">
+        <div className="bg-blue-50 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-blue-100">
+          <div className="text-[10px] lg:text-sm font-bold text-blue-600 mb-1">
+            חדשים
           </div>
-          <div className="text-3xl font-black text-blue-700">
+          <div className="text-xl lg:text-3xl font-black text-blue-700">
             {
               sortedAndFilteredLeads.filter((l) => Number(l.status) === 1)
                 .length
             }
           </div>
         </div>
-        <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100">
-          <div className="text-sm font-bold text-amber-600 mb-1">
-            בתהליך טיפול
+        <div className="bg-amber-50 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-amber-100">
+          <div className="text-[10px] lg:text-sm font-bold text-amber-600 mb-1">
+            בטיפול
           </div>
-          <div className="text-3xl font-black text-amber-700">
+          <div className="text-xl lg:text-3xl font-black text-amber-700">
             {
               sortedAndFilteredLeads.filter((l) => Number(l.status) === 2)
                 .length
             }
           </div>
         </div>
-        <div className="bg-rose-50 p-4 rounded-2xl border border-rose-100">
-          <div className="text-sm font-bold text-rose-600 mb-1">
-            דורש מעקב היום
+        <div className="bg-rose-50 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-rose-100">
+          <div className="text-[10px] lg:text-sm font-bold text-rose-600 mb-1">
+            דחוף
           </div>
-          <div className="text-3xl font-black text-rose-700">{urgentCount}</div>
+          <div className="text-xl lg:text-3xl font-black text-rose-700">
+            {urgentCount}
+          </div>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-[1.5rem] border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+      {/* Desktop Table */}
+      <div className="hidden lg:block bg-white rounded-[1.5rem] border border-slate-200 shadow-sm overflow-hidden">
+        {/* Top Scrollbar */}
+        <div
+          className="overflow-x-auto border-b border-slate-100"
+          style={{ height: "17px" }}
+          onScroll={(e) => {
+            const table = document.getElementById("tasks-table-scroll");
+            if (table) table.scrollLeft = e.currentTarget.scrollLeft;
+          }}
+        >
+          <div style={{ height: "1px", width: "1350px" }}></div>
+        </div>
+
+        {/* Main Table */}
+        <div
+          id="tasks-table-scroll"
+          className="overflow-x-auto"
+          onScroll={(e) => {
+            const topScroll = e.currentTarget.previousElementSibling;
+            if (topScroll) topScroll.scrollLeft = e.currentTarget.scrollLeft;
+          }}
+        >
           <table className="w-full text-right text-sm whitespace-nowrap">
             <thead className="bg-slate-50/50 border-b border-slate-100">
               <tr className="text-slate-400 font-black">
@@ -228,6 +257,7 @@ export default function TasksPage() {
                 <th className="p-5">לקוח</th>
                 <th className="p-5">פרטי קשר</th>
                 <th className="p-5">מקור</th>
+                <th className="p-5">סוג האירוע</th>
                 <th className="p-5">הצעה</th>
                 <th className="p-5">הערות</th>
                 <th className="p-5 text-center">פעולות</th>
@@ -244,8 +274,15 @@ export default function TasksPage() {
                       isUrgent ? "bg-rose-50/30" : ""
                     }`}
                   >
-                    <td className="p-5 font-bold text-slate-400">
-                      {lead.regDate || "לא הוזן"}
+                    <td className="p-5">
+                      <div className="font-bold text-slate-400">
+                        {lead.regDate || "לא הוזן"}
+                      </div>
+                      {lead.regTime && (
+                        <div className="text-xs text-slate-300 font-semibold mt-0.5">
+                          {lead.regTime}
+                        </div>
+                      )}
                     </td>
                     <td className="p-5">
                       <div
@@ -254,7 +291,7 @@ export default function TasksPage() {
                         }`}
                       >
                         <Clock size={12} />
-                        {lead.nextCallDate || "אין מעקב"}
+                        {lead.nextCallDate || "אין"}
                         {isUrgent && (
                           <span className="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded text-[9px] font-black">
                             דחוף!
@@ -263,71 +300,13 @@ export default function TasksPage() {
                       </div>
                     </td>
                     <td className="p-5">
-                      <div className="relative">
-                        <button
-                          ref={(el) => {
-                            if (el && statusDropdownOpen === lead.id) {
-                              const position = getDropdownPosition(el);
-                              el.dataset.dropdownPosition = position;
-                            }
-                          }}
-                          onClick={() => {
-                            const newOpen =
-                              statusDropdownOpen === lead.id ? null : lead.id;
-                            setStatusDropdownOpen(newOpen);
-                          }}
-                          className={`px-3 py-1 rounded-full text-[10px] font-black border flex items-center gap-1.5 w-fit cursor-pointer hover:opacity-80 transition-all ${
-                            STATUSES[lead.status]?.color
-                          }`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              STATUSES[lead.status]?.dot
-                            }`}
-                          ></span>
-                          {STATUSES[lead.status]?.label}
-                          <span className="text-[8px] opacity-50">▼</span>
-                        </button>
-
-                        {statusDropdownOpen === lead.id && (
-                          <div
-                            className={`absolute left-0 bg-white rounded-xl shadow-xl border border-slate-200 py-1 z-50 min-w-[120px] animate-in fade-in duration-200 ${(() => {
-                              const button = document.querySelector(
-                                `[data-dropdown-position]`
-                              );
-                              const position =
-                                button?.dataset.dropdownPosition || "bottom";
-                              return position === "top"
-                                ? "bottom-full mb-1 slide-in-from-bottom-1"
-                                : "top-full mt-1 slide-in-from-top-1";
-                            })()}`}
-                          >
-                            {Object.entries(STATUSES).map(
-                              ([statusKey, statusVal]) => (
-                                <button
-                                  key={statusKey}
-                                  onClick={() =>
-                                    handleQuickStatusChange(
-                                      lead.id,
-                                      Number(statusKey)
-                                    )
-                                  }
-                                  className={`w-full text-right px-3 py-2 hover:bg-slate-50 transition-all flex items-center gap-2 text-[11px] font-black ${
-                                    Number(lead.status) === Number(statusKey)
-                                      ? "bg-slate-50"
-                                      : ""
-                                  }`}
-                                >
-                                  <span
-                                    className={`w-2 h-2 rounded-full ${statusVal.dot}`}
-                                  ></span>
-                                  {statusVal.label}
-                                </button>
-                              )
-                            )}
-                          </div>
-                        )}
-                      </div>
+                      <StatusDropdown
+                        lead={lead}
+                        statusDropdownOpen={statusDropdownOpen}
+                        setStatusDropdownOpen={setStatusDropdownOpen}
+                        handleQuickStatusChange={handleQuickStatusChange}
+                        getDropdownPosition={getDropdownPosition}
+                      />
                     </td>
                     <td className="p-5">
                       <div className="font-black text-slate-800 text-base">
@@ -337,29 +316,38 @@ export default function TasksPage() {
                     <td className="p-5">
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center gap-1.5 font-bold text-slate-600">
-                          <Phone size={12} className="text-pink-400" />{" "}
-                          {lead.phone || "חסר טלפון"}
+                          <Phone size={12} className="text-pink-400" />
+                          {lead.phone || "חסר"}
                         </div>
                         <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold italic">
-                          <AtSign size={12} /> {lead.email || "אין מייל"}
+                          <AtSign size={12} /> {lead.email || "אין"}
                         </div>
                       </div>
                     </td>
                     <td className="p-5">
                       <span
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black border flex items-center gap-1.5 w-fit ${
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black border inline-block ${
                           SOURCES[lead.source]?.color || SOURCES["אחר"].color
                         }`}
                       >
                         {lead.source}
                       </span>
                     </td>
+                    <td className="p-5">
+                      <EventTypeDropdown
+                        lead={lead}
+                        eventTypeDropdownOpen={eventTypeDropdownOpen}
+                        setEventTypeDropdownOpen={setEventTypeDropdownOpen}
+                        handleQuickEventTypeChange={handleQuickEventTypeChange}
+                        getDropdownPosition={getDropdownPosition}
+                      />
+                    </td>
                     <td className="p-5 font-black text-pink-600">
                       ₪{lead.quote || 0}
                     </td>
                     <td className="p-5">
                       <div className="text-xs text-slate-500 max-w-[200px] truncate">
-                        {lead.callDetails || "אין הערות"}
+                        {lead.callDetails || "אין"}
                       </div>
                     </td>
                     <td className="p-5">
@@ -369,7 +357,6 @@ export default function TasksPage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
-                          title="פתח WhatsApp"
                         >
                           <Phone size={16} />
                         </a>
@@ -379,7 +366,6 @@ export default function TasksPage() {
                             setIsModalOpen(true);
                           }}
                           className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="ערוך"
                         >
                           <Edit2 size={16} />
                         </button>
@@ -394,13 +380,39 @@ export default function TasksPage() {
           {sortedAndFilteredLeads.length === 0 && (
             <div className="text-center py-12 text-slate-400">
               <Clock size={48} className="mx-auto mb-4 opacity-20" />
-              <p className="font-bold text-lg">אין משימות פעילות כרגע</p>
-              <p className="text-sm">
-                כל הלידים טופלו או אין שיחות חוזרות מתוכננות
-              </p>
+              <p className="font-bold text-lg">אין משימות פעילות</p>
             </div>
           )}
         </div>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="lg:hidden space-y-3">
+        {sortedAndFilteredLeads.map((lead) => {
+          const isUrgent = lead.nextCallDate && lead.nextCallDate <= today;
+          return (
+            <MobileTaskCard
+              key={lead.id}
+              lead={lead}
+              isUrgent={isUrgent}
+              today={today}
+              statusDropdownOpen={statusDropdownOpen}
+              setStatusDropdownOpen={setStatusDropdownOpen}
+              handleQuickStatusChange={handleQuickStatusChange}
+              onEdit={() => {
+                setEditingLead(lead);
+                setIsModalOpen(true);
+              }}
+            />
+          );
+        })}
+
+        {sortedAndFilteredLeads.length === 0 && (
+          <div className="text-center py-16 text-slate-400 bg-white rounded-2xl">
+            <Clock size={40} className="mx-auto mb-3 opacity-20" />
+            <p className="font-bold">אין משימות פעילות</p>
+          </div>
+        )}
       </div>
 
       {/* Edit Modal */}
@@ -418,6 +430,238 @@ export default function TasksPage() {
   );
 }
 
+// Mobile Task Card Component
+const MobileTaskCard = ({
+  lead,
+  isUrgent,
+  today,
+  statusDropdownOpen,
+  setStatusDropdownOpen,
+  handleQuickStatusChange,
+  onEdit,
+}) => (
+  <div
+    className={`bg-white rounded-2xl p-4 border-2 shadow-sm active:scale-[0.98] transition-all ${
+      isUrgent ? "border-rose-200 bg-rose-50/30" : "border-slate-100"
+    }`}
+  >
+    {/* Header */}
+    <div className="flex items-start justify-between mb-3">
+      <div className="flex-1">
+        <h3 className="font-black text-slate-800 text-lg mb-1">
+          {lead.name || "ללא שם"}
+        </h3>
+        <div className="flex items-center gap-2 flex-wrap">
+          <StatusDropdown
+            lead={lead}
+            statusDropdownOpen={statusDropdownOpen}
+            setStatusDropdownOpen={setStatusDropdownOpen}
+            handleQuickStatusChange={handleQuickStatusChange}
+            getDropdownPosition={() => "bottom"}
+          />
+          <span
+            className={`px-2 py-1 rounded-lg text-[9px] font-black border ${
+              SOURCES[lead.source]?.color || SOURCES["אחר"].color
+            }`}
+          >
+            {lead.source}
+          </span>
+          {lead.eventType && (
+            <span
+              className={`px-2 py-1 rounded-lg text-[9px] font-black border ${
+                EVENT_TYPES[lead.eventType]?.color || EVENT_TYPES["אחר"].color
+              }`}
+            >
+              {lead.eventType}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* Call Date */}
+    {lead.nextCallDate && (
+      <div
+        className={`flex items-center gap-2 mb-3 p-2 rounded-lg ${
+          isUrgent ? "bg-rose-100" : "bg-blue-50"
+        }`}
+      >
+        <Clock
+          size={14}
+          className={isUrgent ? "text-rose-600" : "text-blue-600"}
+        />
+        <span
+          className={`text-xs font-bold ${
+            isUrgent ? "text-rose-700" : "text-blue-700"
+          }`}
+        >
+          {isUrgent ? "דחוף! " : ""}שיחה חוזרת: {lead.nextCallDate}
+        </span>
+      </div>
+    )}
+
+    {/* Contact Info */}
+    <div className="space-y-2 mb-3">
+      <div className="flex items-center gap-2 text-sm">
+        <Phone size={14} className="text-pink-400" />
+        <span className="font-bold text-slate-700">{lead.phone || "חסר"}</span>
+      </div>
+      {lead.email && (
+        <div className="flex items-center gap-2 text-xs">
+          <AtSign size={12} className="text-slate-400" />
+          <span className="text-slate-500">{lead.email}</span>
+        </div>
+      )}
+      {lead.regDate && (
+        <div className="text-xs text-slate-400 font-semibold">
+          נרשם: {lead.regDate}
+          {lead.regTime && <span className="mr-2">{lead.regTime}</span>}
+        </div>
+      )}
+    </div>
+
+    {/* Notes */}
+    {lead.callDetails && (
+      <div className="bg-slate-50 p-3 rounded-xl mb-3">
+        <p className="text-xs text-slate-600 line-clamp-2">
+          {lead.callDetails}
+        </p>
+      </div>
+    )}
+
+    {/* Footer Actions */}
+    <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+      <div className="font-black text-pink-600 text-lg">₪{lead.quote || 0}</div>
+      <div className="flex gap-2">
+        <a
+          href={`https://wa.me/972${lead.phone?.substring(1)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold text-sm active:scale-95 transition-all"
+        >
+          <Phone size={16} />
+          WhatsApp
+        </a>
+        <button
+          onClick={onEdit}
+          className="p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+        >
+          <Edit2 size={18} />
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+// Status Dropdown Component (Shared)
+const StatusDropdown = ({
+  lead,
+  statusDropdownOpen,
+  setStatusDropdownOpen,
+  handleQuickStatusChange,
+  getDropdownPosition,
+}) => {
+  const [buttonEl, setButtonEl] = useState(null);
+
+  return (
+    <div className="relative">
+      <button
+        ref={(el) => setButtonEl(el)}
+        onClick={() => {
+          const newOpen = statusDropdownOpen === lead.id ? null : lead.id;
+          setStatusDropdownOpen(newOpen);
+        }}
+        className={`px-2.5 lg:px-3 py-1 rounded-full text-[9px] lg:text-[10px] font-black border flex items-center gap-1.5 w-fit cursor-pointer hover:opacity-80 transition-all ${
+          STATUSES[lead.status]?.color
+        }`}
+      >
+        <span
+          className={`w-1.5 h-1.5 rounded-full ${STATUSES[lead.status]?.dot}`}
+        ></span>
+        {STATUSES[lead.status]?.label}
+        <span className="text-[8px] opacity-50">▼</span>
+      </button>
+
+      {statusDropdownOpen === lead.id && (
+        <div
+          className={`absolute left-0 bg-white rounded-xl shadow-xl border border-slate-200 py-1 z-50 min-w-[120px] animate-in fade-in duration-200 ${
+            getDropdownPosition(buttonEl) === "top"
+              ? "bottom-full mb-1"
+              : "top-full mt-1"
+          }`}
+        >
+          {Object.entries(STATUSES).map(([statusKey, statusVal]) => (
+            <button
+              key={statusKey}
+              onClick={() =>
+                handleQuickStatusChange(lead.id, Number(statusKey))
+              }
+              className={`w-full text-right px-3 py-2 hover:bg-slate-50 transition-all flex items-center gap-2 text-[11px] font-black ${
+                Number(lead.status) === Number(statusKey) ? "bg-slate-50" : ""
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${statusVal.dot}`}></span>
+              {statusVal.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Event Type Dropdown Component
+const EventTypeDropdown = ({
+  lead,
+  eventTypeDropdownOpen,
+  setEventTypeDropdownOpen,
+  handleQuickEventTypeChange,
+  getDropdownPosition,
+}) => {
+  const [buttonEl, setButtonEl] = useState(null);
+  const currentEventType = lead.eventType || "אחר";
+
+  return (
+    <div className="relative">
+      <button
+        ref={(el) => setButtonEl(el)}
+        onClick={() => {
+          const newOpen = eventTypeDropdownOpen === lead.id ? null : lead.id;
+          setEventTypeDropdownOpen(newOpen);
+        }}
+        className={`px-2.5 py-1 rounded-lg text-[10px] font-black border flex items-center gap-1.5 w-fit cursor-pointer hover:opacity-80 transition-all ${
+          EVENT_TYPES[currentEventType]?.color || EVENT_TYPES["אחר"].color
+        }`}
+      >
+        {currentEventType}
+        <span className="text-[8px] opacity-50">▼</span>
+      </button>
+
+      {eventTypeDropdownOpen === lead.id && (
+        <div
+          className={`absolute left-0 bg-white rounded-xl shadow-xl border border-slate-200 py-1 z-50 min-w-[150px] animate-in fade-in duration-200 ${
+            getDropdownPosition(buttonEl) === "top"
+              ? "bottom-full mb-1"
+              : "top-full mt-1"
+          }`}
+        >
+          {Object.entries(EVENT_TYPES).map(([typeKey, typeVal]) => (
+            <button
+              key={typeKey}
+              onClick={() => handleQuickEventTypeChange(lead.id, typeKey)}
+              className={`w-full text-right px-3 py-2 hover:bg-slate-50 transition-all text-[11px] font-black ${
+                lead.eventType === typeKey ? "bg-slate-50" : ""
+              }`}
+            >
+              {typeKey}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Sort Icon Component
 const SortIcon = ({ columnKey, config }) => {
   if (config.key !== columnKey)
@@ -429,41 +673,45 @@ const SortIcon = ({ columnKey, config }) => {
   );
 };
 
-// Quick Edit Modal Component
+// Quick Edit Modal Component (Responsive)
 const QuickEditModal = ({ lead, onSave, onClose }) => {
   const [formData, setFormData] = useState(lead);
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-y-auto flex flex-col animate-in zoom-in duration-200">
-        <div className="sticky top-0 bg-white px-8 py-6 border-b border-slate-50 flex justify-between items-center z-20">
-          <div className="flex items-center gap-4">
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end lg:items-center justify-center p-0 lg:p-4">
+      <div className="bg-white w-full lg:max-w-4xl max-h-[95vh] lg:max-h-[90vh] rounded-t-[2rem] lg:rounded-[2.5rem] shadow-2xl overflow-y-auto flex flex-col animate-in slide-in-from-bottom lg:zoom-in duration-200">
+        {/* Sticky Header */}
+        <div className="sticky top-0 bg-white px-4 lg:px-8 py-4 lg:py-6 border-b border-slate-50 flex justify-between items-center z-20 gap-3">
+          <div className="flex items-center gap-2 lg:gap-4 flex-1 min-w-0">
             <button
               onClick={onClose}
-              className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 transition-all"
+              className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 transition-all flex-shrink-0"
             >
-              <X size={24} />
+              <X size={20} className="lg:hidden" />
+              <X size={24} className="hidden lg:block" />
             </button>
-            <div>
-              <h3 className="text-2xl font-black text-slate-800">
-                עריכת משימה - {formData.name}
+            <div className="min-w-0">
+              <h3 className="text-lg lg:text-2xl font-black text-slate-800 truncate">
+                עריכת {formData.name || "משימה"}
               </h3>
-              <p className="text-xs font-bold text-slate-400 mt-0.5 italic">
-                עדכון מהיר לפולואפ
+              <p className="text-[10px] lg:text-xs font-bold text-slate-400 italic">
+                עדכון מהיר
               </p>
             </div>
           </div>
           <button
             onClick={() => onSave(formData)}
-            className="bg-pink-600 text-white px-8 py-3 rounded-xl shadow-lg font-black hover:bg-pink-700 transition-all active:scale-95"
+            className="bg-pink-600 text-white px-4 lg:px-8 py-2 lg:py-3 rounded-xl shadow-lg font-black hover:bg-pink-700 transition-all active:scale-95 text-sm lg:text-base flex-shrink-0"
           >
-            שמירת נתונים
+            שמור
           </button>
         </div>
 
-        <div className="p-8 space-y-8 flex-1">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="space-y-4">
+        {/* Form Content */}
+        <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 flex-1">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            {/* Contact Info */}
+            <div className="space-y-3 lg:space-y-4">
               <SectionTitle icon={<User size={14} />} title="פרטי קשר" />
               <div className="space-y-3">
                 <InputField
@@ -473,28 +721,30 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
                   placeholder="שם מלא"
                 />
                 <InputField
-                  label="טלפון * (10 ספרות)"
+                  label="טלפון *"
                   value={formData.phone}
                   onChange={(v) => setFormData({ ...formData, phone: v })}
                   placeholder="05XXXXXXXX"
                 />
                 <InputField
-                  label="כתובת מייל"
+                  label="מייל"
                   value={formData.email}
                   onChange={(v) => setFormData({ ...formData, email: v })}
-                  placeholder="example@gmail.com"
+                  placeholder="email@example.com"
                   icon={<AtSign size={14} />}
                 />
               </div>
             </div>
-            <div className="space-y-4">
+
+            {/* Status */}
+            <div className="space-y-3 lg:space-y-4">
               <SectionTitle
                 icon={<MessageCircle size={14} />}
                 title="סטטוס והצעה"
               />
               <div className="space-y-3">
                 <SelectField
-                  label="סטטוס ליד"
+                  label="סטטוס"
                   value={formData.status}
                   onChange={(v) => setFormData({ ...formData, status: v })}
                   options={Object.entries(STATUSES).map(([k, v]) => ({
@@ -504,7 +754,7 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
                   dynamicClass={STATUSES[formData.status]?.color}
                 />
                 <SelectField
-                  label="מקור הגעה"
+                  label="מקור"
                   value={formData.source}
                   onChange={(v) => setFormData({ ...formData, source: v })}
                   options={Object.keys(SOURCES).map((s) => ({
@@ -516,21 +766,20 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
                   }
                 />
                 <InputField
-                  label="הצעת מחיר (₪)"
+                  label="הצעה (₪)"
                   type="number"
                   value={formData.quote}
                   onChange={(v) => setFormData({ ...formData, quote: v })}
                 />
               </div>
             </div>
-            <div className="space-y-4">
-              <SectionTitle
-                icon={<MapPin size={14} />}
-                title="פרטים דמוגרפיים"
-              />
+
+            {/* Demographics */}
+            <div className="space-y-3 lg:space-y-4">
+              <SectionTitle icon={<MapPin size={14} />} title="פרטים נוספים" />
               <div className="space-y-3">
                 <InputField
-                  label="עיר / ישוב"
+                  label="עיר"
                   value={formData.city}
                   onChange={(v) => setFormData({ ...formData, city: v })}
                 />
@@ -556,12 +805,10 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 pt-6 border-t border-slate-50">
+          {/* Dates and Notes */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 pt-4 lg:pt-6 border-t border-slate-50">
             <div className="space-y-3">
-              <SectionTitle
-                icon={<CalendarIcon size={14} />}
-                title="תאריכים למעקב"
-              />
+              <SectionTitle icon={<CalendarIcon size={14} />} title="תאריכים" />
               <div className="grid grid-cols-2 gap-3">
                 <InputField
                   label="שיחה חוזרת"
@@ -572,7 +819,7 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
                   }
                 />
                 <InputField
-                  label="תאריך אירוע"
+                  label="אירוע"
                   type="date"
                   value={formData.eventDate}
                   onChange={(v) => setFormData({ ...formData, eventDate: v })}
@@ -580,10 +827,10 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
               </div>
             </div>
             <div className="space-y-3">
-              <SectionTitle icon={<AtSign size={14} />} title="סיכום שיחה" />
+              <SectionTitle icon={<MessageCircle size={14} />} title="הערות" />
               <textarea
-                className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[100px] resize-none"
-                placeholder="מה שיר סיכמה עם הלקוחה?"
+                className="w-full p-3 lg:p-4 bg-slate-50 border-none rounded-xl lg:rounded-2xl outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[80px] lg:min-h-[100px] resize-none"
+                placeholder="סיכום שיחה..."
                 value={formData.callDetails || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, callDetails: e.target.value })
@@ -599,7 +846,7 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
 
 // Form Components
 const SectionTitle = ({ icon, title }) => (
-  <div className="flex items-center gap-2 text-slate-400 font-black text-[11px] uppercase tracking-[0.1em] pb-1">
+  <div className="flex items-center gap-2 text-slate-400 font-black text-[10px] lg:text-[11px] uppercase tracking-[0.1em] pb-1">
     {icon} <span>{title}</span>
   </div>
 );
@@ -625,7 +872,7 @@ const InputField = ({
       <input
         type={type}
         placeholder={placeholder}
-        className={`w-full p-3.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm transition-all ${
+        className={`w-full p-3 lg:p-3.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm transition-all ${
           icon ? "pl-10" : ""
         }`}
         value={value || ""}
@@ -655,7 +902,7 @@ const SelectField = ({
         }`}
       >
         <select
-          className={`w-full p-3 bg-transparent font-black outline-none cursor-pointer text-sm ${
+          className={`w-full p-2.5 lg:p-3 bg-transparent font-black outline-none cursor-pointer text-sm ${
             isWhiteText ? "text-white" : "text-slate-800"
           }`}
           value={value}

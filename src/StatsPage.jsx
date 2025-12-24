@@ -11,14 +11,10 @@ import { useAppContext, SOURCES } from "./App";
 
 export default function StatsPage() {
   const { leads } = useAppContext();
-  const [statsTimeFilter, setStatsTimeFilter] = useState("month"); // day, week, month, year, all, custom
-  const [customDateRange, setCustomDateRange] = useState({
-    from: "",
-    to: "",
-  });
+  const [statsTimeFilter, setStatsTimeFilter] = useState("month");
+  const [customDateRange, setCustomDateRange] = useState({ from: "", to: "" });
   const [showCustomPicker, setShowCustomPicker] = useState(false);
 
-  // Calculate Statistics
   const stats = useMemo(() => {
     const now = new Date();
     let filtered = [...leads];
@@ -27,11 +23,9 @@ export default function StatsPage() {
       const limit = new Date();
 
       if (statsTimeFilter === "day") {
-        // Today only
         const today = new Date().toISOString().split("T")[0];
         filtered = leads.filter((l) => l.regDate === today);
       } else if (statsTimeFilter === "custom") {
-        // Custom date range
         if (customDateRange.from && customDateRange.to) {
           const fromDate = new Date(customDateRange.from);
           const toDate = new Date(customDateRange.to);
@@ -41,7 +35,6 @@ export default function StatsPage() {
           });
         }
       } else {
-        // Week, month, year
         if (statsTimeFilter === "week") limit.setDate(now.getDate() - 7);
         if (statsTimeFilter === "month") limit.setMonth(now.getMonth() - 1);
         if (statsTimeFilter === "year")
@@ -64,13 +57,11 @@ export default function StatsPage() {
       .reduce((acc, curr) => acc + Number(curr.quote || 0), 0);
     const avgDealSize = closed > 0 ? Math.round(totalRevenue / closed) : 0;
 
-    // Group by source for chart
     const sourceData = {};
     filtered.forEach((l) => {
       sourceData[l.source] = (sourceData[l.source] || 0) + 1;
     });
 
-    // Group by status
     const statusData = {
       new: newLeads,
       inProgress: inProgress,
@@ -78,7 +69,6 @@ export default function StatsPage() {
       irrelevant: filtered.filter((l) => Number(l.status) === 4).length,
     };
 
-    // Monthly trend (last 6 months)
     const monthlyData = {};
     for (let i = 5; i >= 0; i--) {
       const date = new Date();
@@ -114,68 +104,64 @@ export default function StatsPage() {
   }, [leads, statsTimeFilter, customDateRange]);
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-400">
+    <div className="space-y-4 lg:space-y-6 animate-in fade-in duration-300">
       {/* Header */}
-      <header className="mb-8">
-        <h2 className="text-3xl font-black text-slate-800">ביצועים וניתוח</h2>
-        <p className="text-slate-400 font-bold text-sm">
-          נתוני ביצועים ותובנות עסקיות
-        </p>
-      </header>
-
-      {/* Time Filter */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-2xl border shadow-sm">
-        <div className="flex items-center gap-2 text-slate-500 font-bold">
-          <TrendingUp size={20} className="text-pink-500" /> נתוני צמיחה
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 lg:gap-4">
+        <div>
+          <h2 className="text-2xl lg:text-3xl font-black text-slate-800">
+            סטטיסטיקות ונתונים
+          </h2>
+          <p className="text-slate-400 font-bold text-xs lg:text-sm">
+            ניתוח ביצועים והצלחות
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex bg-slate-100 p-1 rounded-xl">
-            {["day", "week", "month", "year", "all"].map((t) => (
-              <button
-                key={t}
-                onClick={() => {
-                  setStatsTimeFilter(t);
-                  setShowCustomPicker(false);
-                }}
-                className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${
-                  statsTimeFilter === t
-                    ? "bg-white text-pink-600 shadow-sm"
-                    : "text-slate-400 hover:text-slate-600"
-                }`}
-              >
-                {t === "day"
-                  ? "היום"
-                  : t === "week"
-                  ? "שבוע"
-                  : t === "month"
-                  ? "חודש"
-                  : t === "year"
-                  ? "שנה"
-                  : "הכל"}
-              </button>
-            ))}
-          </div>
+
+        {/* Time Filter */}
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          {[
+            { val: "day", label: "היום" },
+            { val: "week", label: "שבוע" },
+            { val: "month", label: "חודש" },
+            { val: "year", label: "שנה" },
+            { val: "all", label: "הכל" },
+          ].map((opt) => (
+            <button
+              key={opt.val}
+              onClick={() => {
+                setStatsTimeFilter(opt.val);
+                setShowCustomPicker(false);
+              }}
+              className={`px-3 lg:px-4 py-2 rounded-lg lg:rounded-xl font-black text-xs lg:text-sm transition-all active:scale-95 ${
+                statsTimeFilter === opt.val
+                  ? "bg-pink-600 text-white shadow-lg"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
           <button
             onClick={() => {
               setStatsTimeFilter("custom");
               setShowCustomPicker(!showCustomPicker);
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
+            className={`flex items-center gap-1.5 px-3 lg:px-4 py-2 rounded-lg lg:rounded-xl font-black text-xs lg:text-sm transition-all active:scale-95 ${
               statsTimeFilter === "custom"
                 ? "bg-pink-600 text-white shadow-lg"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
-            <Calendar size={16} />
+            <Calendar size={14} className="lg:hidden" />
+            <Calendar size={16} className="hidden lg:block" />
             מותאם אישית
           </button>
         </div>
-      </div>
+      </header>
 
       {/* Custom Date Range Picker */}
       {showCustomPicker && (
-        <div className="bg-white p-6 rounded-2xl border shadow-sm animate-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center gap-4">
+        <div className="bg-white p-4 lg:p-6 rounded-xl lg:rounded-2xl border shadow-sm animate-in slide-in-from-top-2 duration-200">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 lg:gap-4">
             <div className="flex-1">
               <label className="text-xs font-black text-slate-500 mb-2 block">
                 מתאריך
@@ -189,7 +175,7 @@ export default function StatsPage() {
                     from: e.target.value,
                   })
                 }
-                className="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl outline-none font-bold text-sm focus:border-pink-400 transition-all"
+                className="w-full p-2.5 lg:p-3 bg-slate-50 border-2 border-slate-200 rounded-lg lg:rounded-xl outline-none font-bold text-sm focus:border-pink-400 transition-all"
               />
             </div>
             <div className="flex-1">
@@ -202,7 +188,7 @@ export default function StatsPage() {
                 onChange={(e) =>
                   setCustomDateRange({ ...customDateRange, to: e.target.value })
                 }
-                className="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl outline-none font-bold text-sm focus:border-pink-400 transition-all"
+                className="w-full p-2.5 lg:p-3 bg-slate-50 border-2 border-slate-200 rounded-lg lg:rounded-xl outline-none font-bold text-sm focus:border-pink-400 transition-all"
               />
             </div>
             <button
@@ -212,7 +198,7 @@ export default function StatsPage() {
                 }
               }}
               disabled={!customDateRange.from || !customDateRange.to}
-              className="mt-7 px-6 py-3 bg-pink-600 text-white rounded-xl font-black hover:bg-pink-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all"
+              className="px-4 lg:px-6 py-2.5 lg:py-3 bg-pink-600 text-white rounded-lg lg:rounded-xl font-black hover:bg-pink-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all active:scale-95 text-sm"
             >
               הצג
             </button>
@@ -225,243 +211,217 @@ export default function StatsPage() {
         </div>
       )}
 
-      {/* Quick Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Main Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         <StatCard
-          icon={<Users className="text-blue-600" />}
-          bg="bg-blue-50"
-          label="סה״כ לידים לתקופה"
+          icon={<Users size={20} className="lg:hidden" />}
+          iconLarge={<Users size={24} className="hidden lg:block" />}
+          title="סה״כ לידים"
           value={stats.total}
+          color="blue"
         />
         <StatCard
-          icon={<Target className="text-emerald-600" />}
-          bg="bg-emerald-50"
-          label="סגירות מוצלחות"
-          value={stats.closed}
-          sub={`שיעור המרה: ${stats.conversion}%`}
+          icon={<Target size={20} className="lg:hidden" />}
+          iconLarge={<Target size={24} className="hidden lg:block" />}
+          title="אחוז המרה"
+          value={`${stats.conversion}%`}
+          color="emerald"
         />
         <StatCard
-          icon={<DollarSign className="text-pink-600" />}
-          bg="bg-pink-50"
-          label="הכנסה סגורה"
+          icon={<DollarSign size={20} className="lg:hidden" />}
+          iconLarge={<DollarSign size={24} className="hidden lg:block" />}
+          title="הכנסות"
           value={`₪${stats.totalRevenue.toLocaleString()}`}
+          color="pink"
         />
         <StatCard
-          icon={<TrendingUp className="text-amber-600" />}
-          bg="bg-amber-50"
-          label="פוטנציאל בקנה"
-          value={`₪${stats.potentialRevenue.toLocaleString()}`}
-          sub="לידים בתהליך"
+          icon={<TrendingUp size={20} className="lg:hidden" />}
+          iconLarge={<TrendingUp size={24} className="hidden lg:block" />}
+          title="עסקה ממוצעת"
+          value={`₪${stats.avgDealSize.toLocaleString()}`}
+          color="amber"
         />
       </div>
 
-      {/* Charts Section */}
-      <div className="grid lg:grid-cols-3 gap-6">
+      {/* Additional Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
+        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] border border-emerald-200">
+          <div className="text-xs lg:text-sm font-black text-emerald-600 mb-1 lg:mb-2">
+            עסקאות שנסגרו
+          </div>
+          <div className="text-2xl lg:text-4xl font-black text-emerald-700">
+            {stats.closed}
+          </div>
+          <div className="text-[10px] lg:text-xs text-emerald-600 font-bold mt-1 lg:mt-2">
+            מתוך {stats.total} לידים
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] border border-pink-200">
+          <div className="text-xs lg:text-sm font-black text-pink-600 mb-1 lg:mb-2">
+            הכנסות פוטנציאליות
+          </div>
+          <div className="text-2xl lg:text-4xl font-black text-pink-700">
+            ₪{stats.potentialRevenue.toLocaleString()}
+          </div>
+          <div className="text-[10px] lg:text-xs text-pink-600 font-bold mt-1 lg:mt-2">
+            {stats.inProgress} עסקאות בתהליך
+          </div>
+        </div>
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+        {/* Status Distribution */}
+        <div className="bg-white p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6">
+            <div className="p-2 lg:p-3 bg-blue-50 rounded-lg lg:rounded-xl text-blue-600">
+              <PieChart size={20} className="lg:hidden" />
+              <PieChart size={24} className="hidden lg:block" />
+            </div>
+            <h3 className="text-lg lg:text-xl font-black text-slate-800">
+              פילוח לפי סטטוס
+            </h3>
+          </div>
+
+          <div className="space-y-3 lg:space-y-4">
+            <StatusBar
+              label="חדש"
+              value={stats.statusData.new}
+              total={stats.total}
+              color="bg-blue-500"
+            />
+            <StatusBar
+              label="בתהליך"
+              value={stats.statusData.inProgress}
+              total={stats.total}
+              color="bg-amber-500"
+            />
+            <StatusBar
+              label="נסגר"
+              value={stats.statusData.closed}
+              total={stats.total}
+              color="bg-emerald-500"
+            />
+            <StatusBar
+              label="לא רלוונטי"
+              value={stats.statusData.irrelevant}
+              total={stats.total}
+              color="bg-rose-500"
+            />
+          </div>
+        </div>
+
         {/* Source Distribution */}
-        <div className="lg:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
-          <h4 className="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
-            <PieChart size={18} className="text-pink-500" /> התפלגות מקורות הגעה
-          </h4>
-          <div className="space-y-4">
+        <div className="bg-white p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6">
+            <div className="p-2 lg:p-3 bg-pink-50 rounded-lg lg:rounded-xl text-pink-600">
+              <TrendingUp size={20} className="lg:hidden" />
+              <TrendingUp size={24} className="hidden lg:block" />
+            </div>
+            <h3 className="text-lg lg:text-xl font-black text-slate-800">
+              מקורות הגעה
+            </h3>
+          </div>
+
+          <div className="space-y-2 lg:space-y-3">
             {Object.entries(stats.sourceData)
-              .sort((a, b) => b[1] - a[1])
-              .map(([source, count]) => {
-                const percent =
-                  stats.total > 0
-                    ? ((count / stats.total) * 100).toFixed(0)
-                    : 0;
-                return (
-                  <div key={source} className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-black text-slate-600">
-                      <span className="flex items-center gap-2">
-                        <span>{SOURCES[source]?.icon || "❓"}</span>
-                        {source}
-                      </span>
-                      <span>
-                        {count} לידים ({percent}%)
-                      </span>
-                    </div>
-                    <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+              .sort(([, a], [, b]) => b - a)
+              .map(([source, count]) => (
+                <div
+                  key={source}
+                  className="flex items-center justify-between p-3 lg:p-4 bg-slate-50 rounded-xl lg:rounded-2xl"
+                >
+                  <div className="flex items-center gap-2 lg:gap-3 flex-1 min-w-0">
+                    <span
+                      className={`px-2 lg:px-2.5 py-1 rounded-lg text-[9px] lg:text-[10px] font-black border flex-shrink-0 ${
+                        SOURCES[source]?.color || SOURCES["אחר"].color
+                      }`}
+                    >
+                      {source}
+                    </span>
+                    <div className="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
                       <div
-                        className={`h-full transition-all duration-1000 ${
-                          SOURCES[source]?.color.split(" ")[0] || "bg-slate-400"
-                        }`}
-                        style={{ width: `${percent}%` }}
+                        className="bg-pink-500 h-full transition-all duration-500"
+                        style={{
+                          width: `${(count / stats.total) * 100}%`,
+                        }}
                       ></div>
                     </div>
                   </div>
-                );
-              })}
-          </div>
-        </div>
-
-        {/* Motivation Card */}
-        <div className="bg-pink-600 p-8 rounded-[2.5rem] shadow-xl text-white flex flex-col justify-between overflow-hidden relative">
-          <div className="relative z-10">
-            <h4 className="text-xl font-black mb-2 italic">
-              טיפ להצלחה שיר 💎
-            </h4>
-            <p className="text-pink-100 font-bold text-sm leading-relaxed">
-              שיעור ההמרה שלך עומד על {stats.conversion}%.
-              {Number(stats.conversion) < 20
-                ? ' נסי לחזור ללידים ה"חדשים" מהר יותר כדי להעלות את המכירות!'
-                : " את עושה עבודה מדהימה, המשיכי כך!"}
-            </p>
-          </div>
-          <div className="mt-8 relative z-10">
-            <div className="text-4xl font-black">
-              ₪
-              {stats.totalRevenue > 10000
-                ? (stats.totalRevenue / 1000).toFixed(1) + "k"
-                : stats.totalRevenue.toLocaleString()}
-            </div>
-            <div className="text-[10px] uppercase font-bold tracking-widest text-pink-200 opacity-80">
-              הכנסה תקופתית ברוטו
-            </div>
-          </div>
-          {/* Decorative blobs */}
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-500 rounded-full opacity-20 blur-3xl"></div>
-          <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white rounded-full opacity-10 blur-3xl"></div>
-        </div>
-      </div>
-
-      {/* Status Breakdown & KPIs */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Status Funnel */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
-          <h4 className="text-lg font-black text-slate-800 mb-6">
-            משפך מכירות 📊
-          </h4>
-          <div className="space-y-3">
-            <FunnelItem
-              label="לידים חדשים"
-              count={stats.statusData.new}
-              color="bg-blue-500"
-              percent={
-                stats.total > 0
-                  ? ((stats.statusData.new / stats.total) * 100).toFixed(0)
-                  : 0
-              }
-            />
-            <FunnelItem
-              label="בתהליך טיפול"
-              count={stats.statusData.inProgress}
-              color="bg-amber-500"
-              percent={
-                stats.total > 0
-                  ? ((stats.statusData.inProgress / stats.total) * 100).toFixed(
-                      0
-                    )
-                  : 0
-              }
-            />
-            <FunnelItem
-              label="סגירות מוצלחות"
-              count={stats.statusData.closed}
-              color="bg-emerald-500"
-              percent={stats.conversion}
-            />
-            <FunnelItem
-              label="לא רלוונטי"
-              count={stats.statusData.irrelevant}
-              color="bg-rose-500"
-              percent={
-                stats.total > 0
-                  ? ((stats.statusData.irrelevant / stats.total) * 100).toFixed(
-                      0
-                    )
-                  : 0
-              }
-            />
-          </div>
-        </div>
-
-        {/* Key Metrics */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
-          <h4 className="text-lg font-black text-slate-800 mb-6">
-            מדדי ביצוע מרכזיים 🎯
-          </h4>
-          <div className="space-y-4">
-            <MetricItem
-              label="ממוצע עסקה"
-              value={`₪${stats.avgDealSize.toLocaleString()}`}
-              icon="💰"
-            />
-            <MetricItem
-              label="שיעור המרה"
-              value={`${stats.conversion}%`}
-              icon="📈"
-              color={
-                Number(stats.conversion) >= 20
-                  ? "text-emerald-600"
-                  : "text-amber-600"
-              }
-            />
-            <MetricItem
-              label="לידים פעילים"
-              value={stats.inProgress}
-              icon="🔄"
-            />
-            <MetricItem
-              label="הכנסה פוטנציאלית"
-              value={`₪${stats.potentialRevenue.toLocaleString()}`}
-              icon="💎"
-              color="text-purple-600"
-            />
+                  <span className="font-black text-slate-800 text-sm lg:text-base ml-2 lg:ml-3 flex-shrink-0">
+                    {count}
+                  </span>
+                </div>
+              ))}
           </div>
         </div>
       </div>
 
       {/* Monthly Trend */}
-      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
-        <h4 className="text-lg font-black text-slate-800 mb-6">
-          מגמת לידים - 6 חודשים אחרונים 📅
-        </h4>
-        <div className="flex items-end justify-between gap-2 h-48">
+      <div className="bg-white p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] border border-slate-200 shadow-sm">
+        <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6">
+          <div className="p-2 lg:p-3 bg-emerald-50 rounded-lg lg:rounded-xl text-emerald-600">
+            <Calendar size={20} className="lg:hidden" />
+            <Calendar size={24} className="hidden lg:block" />
+          </div>
+          <h3 className="text-lg lg:text-xl font-black text-slate-800">
+            מגמה 6 חודשים
+          </h3>
+        </div>
+
+        <div className="space-y-2 lg:space-y-3">
           {Object.entries(stats.monthlyData).map(([month, data]) => {
             const maxValue = Math.max(
               ...Object.values(stats.monthlyData).map((d) => d.total)
             );
-            const height = maxValue > 0 ? (data.total / maxValue) * 100 : 0;
-            const closedHeight =
-              data.total > 0 ? (data.closed / data.total) * 100 : 0;
+            const monthName = new Intl.DateTimeFormat("he-IL", {
+              month: "short",
+            }).format(new Date(month + "-01"));
 
             return (
-              <div
-                key={month}
-                className="flex-1 flex flex-col items-center gap-2"
-              >
-                <div className="w-full relative" style={{ height: "10rem" }}>
-                  <div
-                    className="absolute bottom-0 w-full bg-slate-200 rounded-t-lg transition-all duration-500"
-                    style={{ height: `${height}%` }}
-                  >
+              <div key={month} className="space-y-1 lg:space-y-1.5">
+                <div className="flex items-center justify-between text-xs lg:text-sm">
+                  <span className="font-black text-slate-600">{monthName}</span>
+                  <span className="font-bold text-slate-400">
+                    {data.total} לידים • {data.closed} נסגרו
+                  </span>
+                </div>
+                <div className="flex gap-1 lg:gap-1.5">
+                  <div className="flex-1 bg-slate-100 rounded-full h-4 lg:h-5 overflow-hidden">
                     <div
-                      className="absolute bottom-0 w-full bg-pink-500 rounded-t-lg transition-all duration-500"
-                      style={{ height: `${closedHeight}%` }}
+                      className="bg-blue-500 h-full transition-all duration-500"
+                      style={{
+                        width: `${
+                          maxValue > 0 ? (data.total / maxValue) * 100 : 0
+                        }%`,
+                      }}
                     ></div>
                   </div>
-                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-black text-slate-600">
-                    {data.total}
+                  <div className="flex-1 bg-slate-100 rounded-full h-4 lg:h-5 overflow-hidden">
+                    <div
+                      className="bg-emerald-500 h-full transition-all duration-500"
+                      style={{
+                        width: `${
+                          maxValue > 0 ? (data.closed / maxValue) * 100 : 0
+                        }%`,
+                      }}
+                    ></div>
                   </div>
-                </div>
-                <div className="text-[9px] font-black text-slate-400">
-                  {new Date(month + "-01").toLocaleDateString("he-IL", {
-                    month: "short",
-                  })}
                 </div>
               </div>
             );
           })}
         </div>
-        <div className="flex justify-center gap-6 mt-6 text-xs font-bold">
+
+        <div className="mt-4 lg:mt-6 flex flex-wrap gap-3 lg:gap-4 justify-center text-xs font-bold">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-slate-200"></div>
+            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
             <span className="text-slate-600">סה״כ לידים</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-pink-500"></div>
-            <span className="text-slate-600">נסגרו בהצלחה</span>
+            <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+            <span className="text-slate-600">נסגרו</span>
           </div>
         </div>
       </div>
@@ -469,47 +429,60 @@ export default function StatsPage() {
   );
 }
 
-// Sub-components
-const StatCard = ({ icon, bg, label, value, sub }) => (
-  <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm flex items-start gap-4">
-    <div className={`p-4 ${bg} rounded-2xl`}>{icon}</div>
+// Stat Card Component
+const StatCard = ({ icon, iconLarge, title, value, color }) => {
+  const colors = {
+    blue: "bg-blue-50 text-blue-600 border-blue-100",
+    emerald: "bg-emerald-50 text-emerald-600 border-emerald-100",
+    pink: "bg-pink-50 text-pink-600 border-pink-100",
+    amber: "bg-amber-50 text-amber-600 border-amber-100",
+  };
+
+  const textColors = {
+    blue: "text-blue-700",
+    emerald: "text-emerald-700",
+    pink: "text-pink-700",
+    amber: "text-amber-700",
+  };
+
+  return (
+    <div
+      className={`${colors[color]} p-3 lg:p-6 rounded-xl lg:rounded-2xl border`}
+    >
+      <div className="mb-2 lg:mb-3">
+        {icon}
+        {iconLarge}
+      </div>
+      <div className="text-[10px] lg:text-sm font-black uppercase mb-1 lg:mb-2 opacity-80">
+        {title}
+      </div>
+      <div className={`text-xl lg:text-3xl font-black ${textColors[color]}`}>
+        {value}
+      </div>
+    </div>
+  );
+};
+
+// Status Bar Component
+const StatusBar = ({ label, value, total, color }) => {
+  const percentage = total > 0 ? (value / total) * 100 : 0;
+
+  return (
     <div>
-      <div className="text-2xl font-black text-slate-800">{value}</div>
-      <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-        {label}
+      <div className="flex items-center justify-between mb-1 lg:mb-1.5">
+        <span className="font-black text-slate-700 text-xs lg:text-sm">
+          {label}
+        </span>
+        <span className="font-bold text-slate-400 text-xs lg:text-sm">
+          {value} ({percentage.toFixed(0)}%)
+        </span>
       </div>
-      {sub && (
-        <div className="text-[10px] font-bold text-emerald-500 mt-1">{sub}</div>
-      )}
-    </div>
-  </div>
-);
-
-const FunnelItem = ({ label, count, color, percent }) => (
-  <div className="space-y-1">
-    <div className="flex justify-between text-xs font-black text-slate-600">
-      <span>{label}</span>
-      <span>
-        {count} ({percent}%)
-      </span>
-    </div>
-    <div className="w-full h-8 bg-slate-50 rounded-xl overflow-hidden border border-slate-100 flex items-center">
-      <div
-        className={`h-full ${color} transition-all duration-1000 flex items-center justify-center text-white text-xs font-black`}
-        style={{ width: `${percent}%`, minWidth: "2rem" }}
-      >
-        {percent}%
+      <div className="bg-slate-100 rounded-full h-3 lg:h-4 overflow-hidden">
+        <div
+          className={`${color} h-full transition-all duration-500`}
+          style={{ width: `${percentage}%` }}
+        ></div>
       </div>
     </div>
-  </div>
-);
-
-const MetricItem = ({ label, value, icon, color = "text-slate-800" }) => (
-  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
-    <div className="flex items-center gap-3">
-      <span className="text-2xl">{icon}</span>
-      <span className="text-sm font-bold text-slate-600">{label}</span>
-    </div>
-    <div className={`text-xl font-black ${color}`}>{value}</div>
-  </div>
-);
+  );
+};

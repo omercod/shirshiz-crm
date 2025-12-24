@@ -17,7 +17,7 @@ import {
   MapPin,
   Calendar as CalendarIcon,
 } from "lucide-react";
-import { useAppContext, STATUSES, SOURCES } from "./App";
+import { useAppContext, STATUSES, SOURCES, EVENT_TYPES } from "./App";
 
 export default function LeadsPage() {
   const { leads, addLead, updateLead, deleteLead } = useAppContext();
@@ -31,9 +31,9 @@ export default function LeadsPage() {
     key: "regDate",
     direction: "desc",
   });
-  const [statusDropdownOpen, setStatusDropdownOpen] = useState(null); // Track which lead's dropdown is open
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(null);
+  const [eventTypeDropdownOpen, setEventTypeDropdownOpen] = useState(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (statusDropdownOpen && !event.target.closest(".relative")) {
@@ -87,18 +87,23 @@ export default function LeadsPage() {
     if (!lead) return;
 
     await updateLead(leadId, { ...lead, status: newStatus });
-    setStatusDropdownOpen(null); // Close dropdown after update
+    setStatusDropdownOpen(null);
+  };
+
+  const handleQuickEventTypeChange = async (leadId, newEventType) => {
+    const lead = leads.find((l) => l.id === leadId);
+    if (!lead) return;
+
+    await updateLead(leadId, { ...lead, eventType: newEventType });
+    setEventTypeDropdownOpen(null);
   };
 
   const getDropdownPosition = (buttonElement) => {
     if (!buttonElement) return "bottom";
-
     const rect = buttonElement.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
     const spaceBelow = viewportHeight - rect.bottom;
     const spaceAbove = rect.top;
-
-    // If less than 200px space below, open upward
     return spaceBelow < 200 && spaceAbove > spaceBelow ? "top" : "bottom";
   };
 
@@ -126,64 +131,68 @@ export default function LeadsPage() {
     return sortableLeads;
   }, [leads, searchTerm, statusFilter, sortConfig]);
 
+  const newLeadTemplate = {
+    name: "",
+    phone: "",
+    email: "",
+    city: "",
+    age: "",
+    job: "",
+    source: "אינסטגרם",
+    status: 1,
+    quote: "",
+    nextCallDate: "",
+    eventDate: "",
+    callDetails: "",
+    regDate: new Date().toISOString().split("T")[0],
+  };
+
   return (
-    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="space-y-4 lg:space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
       {/* Header */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 lg:gap-4">
         <div>
-          <h2 className="text-3xl font-black text-slate-800">לידים ולקוחות</h2>
-          <p className="text-slate-400 font-bold text-sm">
+          <h2 className="text-2xl lg:text-3xl font-black text-slate-800">
+            לידים ולקוחות
+          </h2>
+          <p className="text-slate-400 font-bold text-xs lg:text-sm">
             שלום שיר, ברוכה הבאה למערכת הניהול שלך
           </p>
         </div>
         <button
           onClick={() => {
-            setEditingLead({
-              name: "",
-              phone: "",
-              email: "",
-              city: "",
-              age: "",
-              job: "",
-              source: "אינסטגרם",
-              status: 1,
-              quote: "",
-              nextCallDate: "",
-              eventDate: "",
-              callDetails: "",
-              regDate: new Date().toISOString().split("T")[0],
-            });
+            setEditingLead(newLeadTemplate);
             setIsModalOpen(true);
           }}
-          className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-4 rounded-2xl shadow-xl font-black flex items-center gap-2 transition-all active:scale-95 w-full md:w-auto justify-center"
+          className="bg-pink-600 hover:bg-pink-700 text-white px-6 lg:px-8 py-3 lg:py-4 rounded-xl lg:rounded-2xl shadow-xl font-black flex items-center gap-2 transition-all active:scale-95 w-full md:w-auto justify-center text-sm lg:text-base"
         >
-          <Plus size={20} /> הוספת ליד חדש
+          <Plus size={20} /> הוספת ליד
         </button>
       </header>
 
-      {/* Filters Row */}
-      <div className="flex flex-wrap gap-3 items-center bg-white p-3 rounded-2xl border shadow-sm">
-        <div className="relative flex-1 min-w-[300px]">
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-2 lg:gap-3 items-stretch sm:items-center bg-white p-3 rounded-xl lg:rounded-2xl border shadow-sm">
+        <div className="relative flex-1">
           <Search
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+            className="absolute right-3 lg:right-4 top-1/2 -translate-y-1/2 text-slate-400"
             size={16}
           />
           <input
             type="text"
-            placeholder="חיפוש מהיר לפי שם, טלפון, עיר..."
-            className="w-full pr-10 pl-4 py-3 bg-slate-50 border-none rounded-xl outline-none font-bold text-sm"
+            placeholder="חיפוש..."
+            className="w-full pr-9 lg:pr-10 pl-3 lg:pl-4 py-2.5 lg:py-3 bg-slate-50 border-none rounded-lg lg:rounded-xl outline-none font-bold text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
+        <div className="flex items-center gap-2 bg-slate-50 px-3 lg:px-4 py-2.5 lg:py-3 rounded-lg lg:rounded-xl border border-slate-100">
           <Filter size={16} className="text-slate-400" />
           <select
-            className="bg-transparent border-none outline-none font-black text-slate-600 cursor-pointer text-sm"
+            className="bg-transparent border-none outline-none font-black text-slate-600 cursor-pointer text-xs lg:text-sm"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <option value="all">כל הסטטוסים</option>
+            <option value="all">הכל</option>
             {Object.entries(STATUSES).map(([val, { label }]) => (
               <option key={val} value={val}>
                 {label}
@@ -193,9 +202,29 @@ export default function LeadsPage() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-[1.5rem] border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+      {/* Desktop Table */}
+      <div className="hidden lg:block bg-white rounded-[1.5rem] border border-slate-200 shadow-sm overflow-hidden">
+        {/* Top Scrollbar */}
+        <div
+          className="overflow-x-auto border-b border-slate-100"
+          style={{ height: "17px" }}
+          onScroll={(e) => {
+            const table = document.getElementById("leads-table-scroll");
+            if (table) table.scrollLeft = e.currentTarget.scrollLeft;
+          }}
+        >
+          <div style={{ height: "1px", width: "1400px" }}></div>
+        </div>
+
+        {/* Main Table */}
+        <div
+          id="leads-table-scroll"
+          className="overflow-x-auto"
+          onScroll={(e) => {
+            const topScroll = e.currentTarget.previousElementSibling;
+            if (topScroll) topScroll.scrollLeft = e.currentTarget.scrollLeft;
+          }}
+        >
           <table className="w-full text-right text-sm whitespace-nowrap">
             <thead className="bg-slate-50/50 border-b border-slate-100">
               <tr className="text-slate-400 font-black">
@@ -203,8 +232,7 @@ export default function LeadsPage() {
                   onClick={() => requestSort("regDate")}
                   className="p-5 cursor-pointer hover:bg-slate-100 transition-colors"
                 >
-                  תאריך פנייה{" "}
-                  <SortIcon columnKey="regDate" config={sortConfig} />
+                  תאריך <SortIcon columnKey="regDate" config={sortConfig} />
                 </th>
                 <th className="p-5">סטטוס</th>
                 <th
@@ -215,11 +243,12 @@ export default function LeadsPage() {
                 </th>
                 <th className="p-5">פרטי קשר</th>
                 <th className="p-5">מקור</th>
+                <th className="p-5">סוג האירוע</th>
                 <th className="p-5">עיר</th>
                 <th className="p-5">גיל ומקצוע</th>
                 <th className="p-5">הצעה</th>
                 <th className="p-5">שיחה חוזרת</th>
-                <th className="p-5">אירוע</th>
+                <th className="p-5">ת. האירוע</th>
                 <th className="p-5 text-center">פעולות</th>
               </tr>
             </thead>
@@ -229,75 +258,24 @@ export default function LeadsPage() {
                   key={lead.id}
                   className="hover:bg-slate-50/50 transition-colors group"
                 >
-                  <td className="p-5 font-bold text-slate-400">
-                    {lead.regDate || "לא הוזן"}
+                  <td className="p-5">
+                    <div className="font-bold text-slate-400">
+                      {lead.regDate || "לא הוזן"}
+                    </div>
+                    {lead.regTime && (
+                      <div className="text-xs text-slate-300 font-semibold mt-0.5">
+                        {lead.regTime}
+                      </div>
+                    )}
                   </td>
                   <td className="p-5">
-                    <div className="relative">
-                      <button
-                        ref={(el) => {
-                          if (el && statusDropdownOpen === lead.id) {
-                            const position = getDropdownPosition(el);
-                            el.dataset.dropdownPosition = position;
-                          }
-                        }}
-                        onClick={(e) => {
-                          const newOpen =
-                            statusDropdownOpen === lead.id ? null : lead.id;
-                          setStatusDropdownOpen(newOpen);
-                        }}
-                        className={`px-3 py-1 rounded-full text-[10px] font-black border flex items-center gap-1.5 w-fit cursor-pointer hover:opacity-80 transition-all ${
-                          STATUSES[lead.status]?.color
-                        }`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            STATUSES[lead.status]?.dot
-                          }`}
-                        ></span>
-                        {STATUSES[lead.status]?.label}
-                        <span className="text-[8px] opacity-50">▼</span>
-                      </button>
-
-                      {statusDropdownOpen === lead.id && (
-                        <div
-                          className={`absolute left-0 bg-white rounded-xl shadow-xl border border-slate-200 py-1 z-50 min-w-[120px] animate-in fade-in duration-200 ${(() => {
-                            const button = document.querySelector(
-                              `[data-dropdown-position]`
-                            );
-                            const position =
-                              button?.dataset.dropdownPosition || "bottom";
-                            return position === "top"
-                              ? "bottom-full mb-1 slide-in-from-bottom-1"
-                              : "top-full mt-1 slide-in-from-top-1";
-                          })()}`}
-                        >
-                          {Object.entries(STATUSES).map(
-                            ([statusKey, statusVal]) => (
-                              <button
-                                key={statusKey}
-                                onClick={() =>
-                                  handleQuickStatusChange(
-                                    lead.id,
-                                    Number(statusKey)
-                                  )
-                                }
-                                className={`w-full text-right px-3 py-2 hover:bg-slate-50 transition-all flex items-center gap-2 text-[11px] font-black ${
-                                  Number(lead.status) === Number(statusKey)
-                                    ? "bg-slate-50"
-                                    : ""
-                                }`}
-                              >
-                                <span
-                                  className={`w-2 h-2 rounded-full ${statusVal.dot}`}
-                                ></span>
-                                {statusVal.label}
-                              </button>
-                            )
-                          )}
-                        </div>
-                      )}
-                    </div>
+                    <StatusDropdown
+                      lead={lead}
+                      statusDropdownOpen={statusDropdownOpen}
+                      setStatusDropdownOpen={setStatusDropdownOpen}
+                      handleQuickStatusChange={handleQuickStatusChange}
+                      getDropdownPosition={getDropdownPosition}
+                    />
                   </td>
                   <td className="p-5">
                     <div className="font-black text-slate-800 text-base">
@@ -307,33 +285,42 @@ export default function LeadsPage() {
                   <td className="p-5">
                     <div className="flex flex-col gap-0.5">
                       <div className="flex items-center gap-1.5 font-bold text-slate-600">
-                        <Phone size={12} className="text-pink-400" />{" "}
-                        {lead.phone || "חסר טלפון"}
+                        <Phone size={12} className="text-pink-400" />
+                        {lead.phone || "חסר"}
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold italic">
-                        <AtSign size={12} /> {lead.email || "אין מייל"}
+                        <AtSign size={12} /> {lead.email || "אין"}
                       </div>
                     </div>
                   </td>
                   <td className="p-5">
                     <span
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-black border flex items-center gap-1.5 w-fit ${
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-black border inline-block ${
                         SOURCES[lead.source]?.color || SOURCES["אחר"].color
                       }`}
                     >
                       {lead.source}
                     </span>
                   </td>
+                  <td className="p-5">
+                    <EventTypeDropdown
+                      lead={lead}
+                      eventTypeDropdownOpen={eventTypeDropdownOpen}
+                      setEventTypeDropdownOpen={setEventTypeDropdownOpen}
+                      handleQuickEventTypeChange={handleQuickEventTypeChange}
+                      getDropdownPosition={getDropdownPosition}
+                    />
+                  </td>
                   <td className="p-5 font-bold text-slate-500">
                     {lead.city || "לא ידוע"}
                   </td>
                   <td className="p-5">
                     <div className="flex flex-col">
-                      <span className="font-black text-slate-800 text-sm leading-tight">
-                        {lead.age || "גיל חסר"}
+                      <span className="font-black text-slate-800 text-sm">
+                        {lead.age || "-"}
                       </span>
-                      <span className="text-slate-400 font-bold text-xs uppercase tracking-tight">
-                        {lead.job || "מקצוע חסר"}
+                      <span className="text-slate-400 font-bold text-xs">
+                        {lead.job || "-"}
                       </span>
                     </div>
                   </td>
@@ -342,7 +329,7 @@ export default function LeadsPage() {
                   </td>
                   <td className="p-5">
                     <div className="flex items-center gap-1.5 font-bold text-blue-600 text-xs">
-                      📞 {lead.nextCallDate || "אין מעקב"}
+                      📞 {lead.nextCallDate || "אין"}
                     </div>
                   </td>
                   <td className="p-5 font-bold text-emerald-600 text-xs">
@@ -377,6 +364,33 @@ export default function LeadsPage() {
         </div>
       </div>
 
+      {/* Mobile Cards */}
+      <div className="lg:hidden space-y-3">
+        {sortedAndFilteredLeads.map((lead) => (
+          <MobileLeadCard
+            key={lead.id}
+            lead={lead}
+            statusDropdownOpen={statusDropdownOpen}
+            setStatusDropdownOpen={setStatusDropdownOpen}
+            handleQuickStatusChange={handleQuickStatusChange}
+            onEdit={() => {
+              setEditingLead(lead);
+              setIsModalOpen(true);
+            }}
+            onDelete={async () => {
+              if (window.confirm("למחוק את הליד?")) await deleteLead(lead.id);
+            }}
+          />
+        ))}
+
+        {sortedAndFilteredLeads.length === 0 && (
+          <div className="text-center py-16 text-slate-400 bg-white rounded-2xl">
+            <Search size={40} className="mx-auto mb-3 opacity-20" />
+            <p className="font-bold">אין לידים להצגה</p>
+          </div>
+        )}
+      </div>
+
       {/* Modal */}
       {isModalOpen && editingLead && (
         <LeadModal
@@ -394,7 +408,232 @@ export default function LeadsPage() {
   );
 }
 
-// Sort Icon Component
+// Mobile Lead Card
+const MobileLeadCard = ({
+  lead,
+  statusDropdownOpen,
+  setStatusDropdownOpen,
+  handleQuickStatusChange,
+  onEdit,
+  onDelete,
+}) => (
+  <div className="bg-white rounded-2xl p-4 border-2 border-slate-100 shadow-sm active:scale-[0.98] transition-all">
+    {/* Header */}
+    <div className="flex items-start justify-between mb-3">
+      <div className="flex-1 min-w-0">
+        <h3 className="font-black text-slate-800 text-lg mb-1.5 truncate">
+          {lead.name || "ללא שם"}
+        </h3>
+        <div className="flex items-center gap-2 flex-wrap">
+          <StatusDropdown
+            lead={lead}
+            statusDropdownOpen={statusDropdownOpen}
+            setStatusDropdownOpen={setStatusDropdownOpen}
+            handleQuickStatusChange={handleQuickStatusChange}
+            getDropdownPosition={() => "bottom"}
+          />
+          <span
+            className={`px-2 py-1 rounded-lg text-[9px] font-black border ${
+              SOURCES[lead.source]?.color || SOURCES["אחר"].color
+            }`}
+          >
+            {lead.source}
+          </span>
+          {lead.eventType && (
+            <span
+              className={`px-2 py-1 rounded-lg text-[9px] font-black border ${
+                EVENT_TYPES[lead.eventType]?.color || EVENT_TYPES["אחר"].color
+              }`}
+            >
+              {lead.eventType}
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="font-black text-pink-600 text-xl flex-shrink-0 ml-2">
+        ₪{lead.quote || 0}
+      </div>
+    </div>
+
+    {/* Contact Info */}
+    <div className="space-y-2 mb-3">
+      <div className="flex items-center gap-2 text-sm">
+        <Phone size={14} className="text-pink-400 flex-shrink-0" />
+        <span className="font-bold text-slate-700">{lead.phone || "חסר"}</span>
+      </div>
+      {lead.email && (
+        <div className="flex items-center gap-2 text-xs">
+          <AtSign size={12} className="text-slate-400 flex-shrink-0" />
+          <span className="text-slate-500 truncate">{lead.email}</span>
+        </div>
+      )}
+      {lead.city && (
+        <div className="flex items-center gap-2 text-xs">
+          <MapPin size={12} className="text-slate-400 flex-shrink-0" />
+          <span className="text-slate-500">{lead.city}</span>
+        </div>
+      )}
+      {lead.regDate && (
+        <div className="text-xs text-slate-400 font-semibold">
+          נרשם: {lead.regDate}
+          {lead.regTime && <span className="mr-2">{lead.regTime}</span>}
+        </div>
+      )}
+    </div>
+
+    {/* Dates */}
+    <div className="flex gap-2 mb-3">
+      {lead.nextCallDate && (
+        <div className="flex-1 bg-blue-50 p-2 rounded-lg">
+          <div className="text-[9px] text-blue-600 font-bold mb-0.5">
+            שיחה חוזרת
+          </div>
+          <div className="text-xs font-black text-blue-700">
+            {lead.nextCallDate}
+          </div>
+        </div>
+      )}
+      {lead.eventDate && (
+        <div className="flex-1 bg-emerald-50 p-2 rounded-lg">
+          <div className="text-[9px] text-emerald-600 font-bold mb-0.5">
+            אירוע
+          </div>
+          <div className="text-xs font-black text-emerald-700">
+            {lead.eventDate}
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* Actions */}
+    <div className="flex gap-2 pt-3 border-t border-slate-100">
+      <button
+        onClick={onEdit}
+        className="flex-1 bg-blue-500 text-white px-4 py-2.5 rounded-xl font-bold text-sm active:scale-95 transition-all flex items-center justify-center gap-2"
+      >
+        <Edit2 size={16} />
+        ערוך
+      </button>
+      <button
+        onClick={onDelete}
+        className="p-2.5 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors active:scale-95"
+      >
+        <Trash2 size={18} />
+      </button>
+    </div>
+  </div>
+);
+
+// Status Dropdown
+const StatusDropdown = ({
+  lead,
+  statusDropdownOpen,
+  setStatusDropdownOpen,
+  handleQuickStatusChange,
+  getDropdownPosition,
+}) => {
+  const [buttonEl, setButtonEl] = useState(null);
+
+  return (
+    <div className="relative">
+      <button
+        ref={(el) => setButtonEl(el)}
+        onClick={() => {
+          const newOpen = statusDropdownOpen === lead.id ? null : lead.id;
+          setStatusDropdownOpen(newOpen);
+        }}
+        className={`px-2.5 py-1 rounded-full text-[9px] lg:text-[10px] font-black border flex items-center gap-1.5 w-fit cursor-pointer hover:opacity-80 transition-all ${
+          STATUSES[lead.status]?.color
+        }`}
+      >
+        <span
+          className={`w-1.5 h-1.5 rounded-full ${STATUSES[lead.status]?.dot}`}
+        ></span>
+        {STATUSES[lead.status]?.label}
+        <span className="text-[8px] opacity-50">▼</span>
+      </button>
+
+      {statusDropdownOpen === lead.id && (
+        <div
+          className={`absolute left-0 bg-white rounded-xl shadow-xl border border-slate-200 py-1 z-50 min-w-[120px] animate-in fade-in duration-200 ${
+            getDropdownPosition(buttonEl) === "top"
+              ? "bottom-full mb-1"
+              : "top-full mt-1"
+          }`}
+        >
+          {Object.entries(STATUSES).map(([statusKey, statusVal]) => (
+            <button
+              key={statusKey}
+              onClick={() =>
+                handleQuickStatusChange(lead.id, Number(statusKey))
+              }
+              className={`w-full text-right px-3 py-2 hover:bg-slate-50 transition-all flex items-center gap-2 text-[11px] font-black ${
+                Number(lead.status) === Number(statusKey) ? "bg-slate-50" : ""
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${statusVal.dot}`}></span>
+              {statusVal.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Event Type Dropdown
+const EventTypeDropdown = ({
+  lead,
+  eventTypeDropdownOpen,
+  setEventTypeDropdownOpen,
+  handleQuickEventTypeChange,
+  getDropdownPosition,
+}) => {
+  const [buttonEl, setButtonEl] = useState(null);
+  const currentEventType = lead.eventType || "אחר";
+
+  return (
+    <div className="relative">
+      <button
+        ref={(el) => setButtonEl(el)}
+        onClick={() => {
+          const newOpen = eventTypeDropdownOpen === lead.id ? null : lead.id;
+          setEventTypeDropdownOpen(newOpen);
+        }}
+        className={`px-2.5 py-1 rounded-lg text-[10px] font-black border flex items-center gap-1.5 w-fit cursor-pointer hover:opacity-80 transition-all ${
+          EVENT_TYPES[currentEventType]?.color || EVENT_TYPES["אחר"].color
+        }`}
+      >
+        {currentEventType}
+        <span className="text-[8px] opacity-50">▼</span>
+      </button>
+
+      {eventTypeDropdownOpen === lead.id && (
+        <div
+          className={`absolute left-0 bg-white rounded-xl shadow-xl border border-slate-200 py-1 z-50 min-w-[150px] animate-in fade-in duration-200 ${
+            getDropdownPosition(buttonEl) === "top"
+              ? "bottom-full mb-1"
+              : "top-full mt-1"
+          }`}
+        >
+          {Object.entries(EVENT_TYPES).map(([typeKey, typeVal]) => (
+            <button
+              key={typeKey}
+              onClick={() => handleQuickEventTypeChange(lead.id, typeKey)}
+              className={`w-full text-right px-3 py-2 hover:bg-slate-50 transition-all flex items-center gap-2 text-[11px] font-black ${
+                lead.eventType === typeKey ? "bg-slate-50" : ""
+              }`}
+            >
+              {typeKey}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Sort Icon
 const SortIcon = ({ columnKey, config }) => {
   if (config.key !== columnKey)
     return <ArrowUpDown size={12} className="opacity-20 inline ml-1" />;
@@ -405,78 +644,86 @@ const SortIcon = ({ columnKey, config }) => {
   );
 };
 
-// Lead Modal Component
+// Lead Modal (Responsive)
 const LeadModal = ({ lead, onSave, onClose, error }) => {
   const [formData, setFormData] = useState(lead);
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-y-auto flex flex-col animate-in zoom-in duration-200">
-        <div className="sticky top-0 bg-white px-8 py-6 border-b border-slate-50 flex justify-between items-center z-20">
-          <div className="flex items-center gap-4">
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end lg:items-center justify-center p-0 lg:p-4">
+      <div className="bg-white w-full lg:max-w-4xl max-h-[95vh] lg:max-h-[90vh] rounded-t-[2rem] lg:rounded-[2.5rem] shadow-2xl overflow-y-auto flex flex-col animate-in slide-in-from-bottom lg:zoom-in duration-200">
+        {/* Header */}
+        <div className="sticky top-0 bg-white px-4 lg:px-8 py-4 lg:py-6 border-b border-slate-50 flex justify-between items-center z-20 gap-3">
+          <div className="flex items-center gap-2 lg:gap-4 flex-1 min-w-0">
             <button
               onClick={onClose}
-              className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 transition-all"
+              className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 transition-all flex-shrink-0"
             >
-              <X size={24} />
+              <X size={20} className="lg:hidden" />
+              <X size={24} className="hidden lg:block" />
             </button>
-            <div>
-              <h3 className="text-2xl font-black text-slate-800">
-                {formData.id ? "עדכון לקוחה" : "ליד חדש למערכת"}
+            <div className="min-w-0">
+              <h3 className="text-lg lg:text-2xl font-black text-slate-800 truncate">
+                {formData.id ? "עדכון לקוחה" : "ליד חדש"}
               </h3>
-              <p className="text-xs font-bold text-slate-400 mt-0.5 italic">
-                SHIRSHIZ CRM EXPERIENCE
+              <p className="text-[10px] lg:text-xs font-bold text-slate-400 italic">
+                SHIRSHIZ CRM
               </p>
             </div>
           </div>
           <button
             onClick={() => onSave(formData)}
-            className="bg-pink-600 text-white px-8 py-3 rounded-xl shadow-lg font-black hover:bg-pink-700 transition-all active:scale-95"
+            className="bg-pink-600 text-white px-4 lg:px-8 py-2 lg:py-3 rounded-xl shadow-lg font-black hover:bg-pink-700 transition-all active:scale-95 text-sm lg:text-base flex-shrink-0"
           >
-            שמירת נתונים
+            שמור
           </button>
         </div>
 
-        <div className="p-8 space-y-8 flex-1">
+        {/* Form */}
+        <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 flex-1">
           {error && (
-            <div className="bg-rose-50 text-rose-600 p-4 rounded-2xl flex items-center gap-3 font-black text-sm border border-rose-100 animate-pulse">
-              <AlertCircle size={20} /> {error}
+            <div className="bg-rose-50 text-rose-600 p-3 lg:p-4 rounded-xl lg:rounded-2xl flex items-center gap-2 lg:gap-3 font-black text-xs lg:text-sm border border-rose-100">
+              <AlertCircle size={18} className="lg:hidden flex-shrink-0" />
+              <AlertCircle
+                size={20}
+                className="hidden lg:block flex-shrink-0"
+              />
+              <span>{error}</span>
             </div>
           )}
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            {/* Contact */}
+            <div className="space-y-3 lg:space-y-4">
               <SectionTitle icon={<User size={14} />} title="פרטי קשר" />
               <div className="space-y-3">
                 <InputField
-                  label="שם הלקוחה *"
+                  label="שם *"
                   value={formData.name}
                   onChange={(v) => setFormData({ ...formData, name: v })}
                   placeholder="שם מלא"
                 />
                 <InputField
-                  label="טלפון * (10 ספרות)"
+                  label="טלפון *"
                   value={formData.phone}
                   onChange={(v) => setFormData({ ...formData, phone: v })}
                   placeholder="05XXXXXXXX"
                 />
                 <InputField
-                  label="כתובת מייל"
+                  label="מייל"
                   value={formData.email}
                   onChange={(v) => setFormData({ ...formData, email: v })}
-                  placeholder="example@gmail.com"
+                  placeholder="email@example.com"
                   icon={<AtSign size={14} />}
                 />
               </div>
             </div>
-            <div className="space-y-4">
-              <SectionTitle
-                icon={<MessageCircle size={14} />}
-                title="סטטוס והצעה"
-              />
+
+            {/* Status */}
+            <div className="space-y-3 lg:space-y-4">
+              <SectionTitle icon={<MessageCircle size={14} />} title="סטטוס" />
               <div className="space-y-3">
                 <SelectField
-                  label="סטטוס ליד"
+                  label="סטטוס"
                   value={formData.status}
                   onChange={(v) => setFormData({ ...formData, status: v })}
                   options={Object.entries(STATUSES).map(([k, v]) => ({
@@ -486,7 +733,7 @@ const LeadModal = ({ lead, onSave, onClose, error }) => {
                   dynamicClass={STATUSES[formData.status]?.color}
                 />
                 <SelectField
-                  label="מקור הגעה"
+                  label="מקור"
                   value={formData.source}
                   onChange={(v) => setFormData({ ...formData, source: v })}
                   options={Object.keys(SOURCES).map((s) => ({
@@ -497,22 +744,31 @@ const LeadModal = ({ lead, onSave, onClose, error }) => {
                     SOURCES[formData.source]?.color || SOURCES["אחר"].color
                   }
                 />
+                <SelectField
+                  label="סוג האירוע"
+                  value={formData.eventType || "אחר"}
+                  onChange={(v) => setFormData({ ...formData, eventType: v })}
+                  options={Object.keys(EVENT_TYPES).map((s) => ({
+                    val: s,
+                    label: s,
+                  }))}
+                  dynamicClass={EVENT_TYPES[formData.eventType || "אחר"]?.color}
+                />
                 <InputField
-                  label="הצעת מחיר (₪)"
+                  label="הצעה (₪)"
                   type="number"
                   value={formData.quote}
                   onChange={(v) => setFormData({ ...formData, quote: v })}
                 />
               </div>
             </div>
-            <div className="space-y-4">
-              <SectionTitle
-                icon={<MapPin size={14} />}
-                title="פרטים דמוגרפיים"
-              />
+
+            {/* Demographics */}
+            <div className="space-y-3 lg:space-y-4">
+              <SectionTitle icon={<MapPin size={14} />} title="פרטים" />
               <div className="space-y-3">
                 <InputField
-                  label="עיר / ישוב"
+                  label="עיר"
                   value={formData.city}
                   onChange={(v) => setFormData({ ...formData, city: v })}
                 />
@@ -538,12 +794,10 @@ const LeadModal = ({ lead, onSave, onClose, error }) => {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 pt-6 border-t border-slate-50">
+          {/* Dates and Notes */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 pt-4 lg:pt-6 border-t border-slate-50">
             <div className="space-y-3">
-              <SectionTitle
-                icon={<CalendarIcon size={14} />}
-                title="תאריכים למעקב"
-              />
+              <SectionTitle icon={<CalendarIcon size={14} />} title="תאריכים" />
               <div className="grid grid-cols-2 gap-3">
                 <InputField
                   label="שיחה חוזרת"
@@ -554,7 +808,7 @@ const LeadModal = ({ lead, onSave, onClose, error }) => {
                   }
                 />
                 <InputField
-                  label="תאריך אירוע"
+                  label="אירוע"
                   type="date"
                   value={formData.eventDate}
                   onChange={(v) => setFormData({ ...formData, eventDate: v })}
@@ -562,10 +816,10 @@ const LeadModal = ({ lead, onSave, onClose, error }) => {
               </div>
             </div>
             <div className="space-y-3">
-              <SectionTitle icon={<AtSign size={14} />} title="סיכום שיחה" />
+              <SectionTitle icon={<MessageCircle size={14} />} title="הערות" />
               <textarea
-                className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[100px] resize-none"
-                placeholder="מה שיר סיכמה עם הלקוחה?"
+                className="w-full p-3 lg:p-4 bg-slate-50 border-none rounded-xl lg:rounded-2xl outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[80px] lg:min-h-[100px] resize-none"
+                placeholder="סיכום..."
                 value={formData.callDetails || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, callDetails: e.target.value })
@@ -581,7 +835,7 @@ const LeadModal = ({ lead, onSave, onClose, error }) => {
 
 // Form Components
 const SectionTitle = ({ icon, title }) => (
-  <div className="flex items-center gap-2 text-slate-400 font-black text-[11px] uppercase tracking-[0.1em] pb-1">
+  <div className="flex items-center gap-2 text-slate-400 font-black text-[10px] lg:text-[11px] uppercase tracking-[0.1em] pb-1">
     {icon} <span>{title}</span>
   </div>
 );
@@ -607,7 +861,7 @@ const InputField = ({
       <input
         type={type}
         placeholder={placeholder}
-        className={`w-full p-3.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm transition-all ${
+        className={`w-full p-3 lg:p-3.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm transition-all ${
           icon ? "pl-10" : ""
         }`}
         value={value || ""}
@@ -623,27 +877,37 @@ const SelectField = ({
   onChange,
   options,
   dynamicClass = "",
-}) => (
-  <div>
-    <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
-      {label}
-    </label>
-    <div
-      className={`p-0.5 rounded-xl border-2 transition-all ${
-        dynamicClass || "bg-slate-50 border-transparent"
-      }`}
-    >
-      <select
-        className="w-full p-3 bg-transparent font-black outline-none cursor-pointer text-sm text-slate-800"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+}) => {
+  const isWhiteText = dynamicClass?.includes("bg-slate-800");
+
+  return (
+    <div>
+      <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+        {label}
+      </label>
+      <div
+        className={`p-0.5 rounded-xl border-2 transition-all ${
+          dynamicClass || "bg-slate-50 border-transparent"
+        }`}
       >
-        {options.map((opt) => (
-          <option key={opt.val} value={opt.val} className="bg-white">
-            {opt.label}
-          </option>
-        ))}
-      </select>
+        <select
+          className={`w-full p-2.5 lg:p-3 bg-transparent font-black outline-none cursor-pointer text-sm ${
+            isWhiteText ? "text-white" : "text-slate-800"
+          }`}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        >
+          {options.map((opt) => (
+            <option
+              key={opt.val}
+              value={opt.val}
+              className="bg-white text-slate-800"
+            >
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
-  </div>
-);
+  );
+};
