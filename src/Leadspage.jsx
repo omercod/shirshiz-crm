@@ -215,7 +215,7 @@ export default function LeadsPage() {
                 </th>
                 <th className="p-5">פרטי קשר</th>
                 <th className="p-5">מקור</th>
-                <th className="p-5">מיקום</th>
+                <th className="p-5">עיר</th>
                 <th className="p-5">גיל ומקצוע</th>
                 <th className="p-5">הצעה</th>
                 <th className="p-5">שיחה חוזרת</th>
