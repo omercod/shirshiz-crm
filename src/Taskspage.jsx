@@ -437,7 +437,7 @@ export default function TasksPage() {
                         }`}
                       >
                         <Clock size={12} />
-                        {lead.nextCallDate || "אין"}
+                        {formatIsraeliDate(lead.nextCallDate) || "אין"}
                         {isMissed && (
                           <span className="bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded text-[9px] font-black">
                             לא הספקתי!
@@ -709,7 +709,7 @@ const MobileTaskCard = ({
             }`}
           >
             {isMissed ? "לא הספקתי! " : isUrgent ? "דחוף! " : ""}שיחה חוזרת:{" "}
-            {lead.nextCallDate}
+            {formatIsraeliDate(lead.nextCallDate)}
           </span>
         </div>
       )}
@@ -897,8 +897,14 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
   const [formData, setFormData] = useState(lead);
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end lg:items-center justify-center p-0 lg:p-4">
-      <div className="bg-white w-full lg:max-w-5xl h-[95vh] lg:max-h-[90vh] rounded-t-[2rem] lg:rounded-[2.5rem] shadow-2xl flex flex-col animate-in slide-in-from-bottom lg:zoom-in duration-200">
+    <div
+      className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end lg:items-center justify-center p-0 lg:p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white w-full lg:max-w-5xl h-[95vh] lg:max-h-[90vh] rounded-t-[2rem] lg:rounded-[2.5rem] shadow-2xl flex flex-col animate-in slide-in-from-bottom lg:zoom-in duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex-shrink-0 bg-gradient-to-r from-pink-50 to-purple-50 px-4 lg:px-8 py-4 lg:py-6 border-b border-slate-100 flex justify-between items-center gap-3">
           <div className="flex items-center gap-2 lg:gap-4 flex-1 min-w-0">
@@ -1058,12 +1064,27 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
                     }
                   />
                   <InputField
-                    label="אירוע"
+                    label="אירוע ראשון"
                     type="date"
                     value={formData.eventDate}
                     onChange={(v) => setFormData({ ...formData, eventDate: v })}
                   />
                 </div>
+
+                {/* 🎂 אירוע 2 - רק למי שבאפס למקצוענית + נסגר */}
+                {formData.eventType === "מאפס למקצוענית" &&
+                  formData.status === 3 && (
+                    <div className="pt-2">
+                      <InputField
+                        label="🎂 אירוע שני (מפגש 2)"
+                        type="date"
+                        value={formData.event2Date}
+                        onChange={(v) =>
+                          setFormData({ ...formData, event2Date: v })
+                        }
+                      />
+                    </div>
+                  )}
               </div>
               <div className="space-y-3">
                 <SectionTitle

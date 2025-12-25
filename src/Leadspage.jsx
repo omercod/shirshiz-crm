@@ -935,8 +935,14 @@ const LeadModal = ({ lead, onSave, onClose, error }) => {
   const [formData, setFormData] = useState(lead);
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end lg:items-center justify-center p-0 lg:p-4">
-      <div className="bg-white w-full lg:max-w-4xl h-[95vh] lg:max-h-[90vh] rounded-t-[2rem] lg:rounded-[2.5rem] shadow-2xl flex flex-col animate-in slide-in-from-bottom lg:zoom-in duration-200">
+    <div
+      className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end lg:items-center justify-center p-0 lg:p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white w-full lg:max-w-4xl h-[95vh] lg:max-h-[90vh] rounded-t-[2rem] lg:rounded-[2.5rem] shadow-2xl flex flex-col animate-in slide-in-from-bottom lg:zoom-in duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="bg-white px-4 lg:px-8 py-4 lg:py-6 border-b border-slate-50 flex justify-between items-center z-20 gap-3 flex-shrink-0">
           <div className="flex items-center gap-2 lg:gap-4 flex-1 min-w-0">
