@@ -1073,7 +1073,7 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
 
                 {/* 🎂 אירוע 2 - רק למי שבאפס למקצוענית + נסגר */}
                 {formData.eventType === "מאפס למקצוענית" &&
-                  formData.status === 3 && (
+                  Number(formData.status) === 3 && (
                     <div className="pt-2">
                       <InputField
                         label="🎂 אירוע שני (מפגש 2)"
