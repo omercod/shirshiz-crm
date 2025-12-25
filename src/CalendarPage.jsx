@@ -81,7 +81,7 @@ export default function CalendarPage() {
         emoji: "🎓",
       },
       "מאפס למקצוענית - מפגש 2": {
-        bg: "bg-purple-50",
+        bg: "bg-pink-70",
         text: "text-pink-700",
         border: "border-pink-100",
         emoji: "🎓",
@@ -314,7 +314,7 @@ export default function CalendarPage() {
             <span className="text-slate-600">🎓 מאפס (מפגש 1)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-pink-500"></div>
+            <div className="w-3 h-3 rounded-full bg-pink-700"></div>
             <span className="text-slate-600">🎓 מאפס (מפגש 2)</span>
           </div>
           <div className="flex items-center gap-2">
@@ -367,7 +367,7 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
         "מאפס למקצוענית - מפגש 2": {
           type: "מאפס למקצוענית - מפגש 2",
           emoji: "🎂",
-          color: "purple",
+          color: "pink",
         },
         "סדנת וינטאג'": { type: "סדנת וינטאג'", emoji: "🎂", color: "purple" },
         אחר: { type: "אחר", emoji: "📦", color: "emerald" },
