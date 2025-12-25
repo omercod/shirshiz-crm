@@ -4,7 +4,7 @@ import {
   ChevronRight,
   ChevronLeft,
 } from "lucide-react";
-import { useAppContext } from "./App";
+import { useAppContext, STATUSES } from "./App";
 
 export default function CalendarPage() {
   const { leads, updateLead } = useAppContext();
@@ -344,18 +344,23 @@ export default function CalendarPage() {
 }
 
 // Quick View Modal (Responsive)
+// Quick View Modal (Responsive)
 const QuickViewModal = ({ lead, onClose, onUpdate }) => {
-  const [notes, setNotes] = useState(lead.callDetails || "");
+  const [formData, setFormData] = useState({
+    ...lead,
+    nextCallDate: lead.nextCallDate || "",
+    eventDate: lead.eventDate || "",
+    quote: lead.quote || "",
+    city: lead.city || "",
+    status: lead.status || 1,
+  });
 
-  const handleSaveNotes = async () => {
-    await onUpdate(lead.id, { ...lead, callDetails: notes });
+  const handleSave = async () => {
+    await onUpdate(lead.id, formData);
     onClose();
   };
 
   const getEventType = () => {
-    const today = new Date().toISOString().split("T")[0];
-
-    // אם יש type (מהפונקציה getEventsForDay)
     if (lead.type) {
       const style = {
         שיחה: { type: "שיחה", emoji: "📞", color: "blue" },
@@ -367,50 +372,29 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
         "מאפס למקצוענית - מפגש 2": {
           type: "מאפס למקצוענית - מפגש 2",
           emoji: "🎂",
-          color: "pink",
+          color: "purple",
         },
         "סדנת וינטאג'": { type: "סדנת וינטאג'", emoji: "🎂", color: "purple" },
         אחר: { type: "אחר", emoji: "📦", color: "emerald" },
       };
       return style[lead.type] || style["אחר"];
     }
-
-    // בדיקה ישנה (fallback)
-    if (lead.eventDate === today && lead.eventType) {
-      const style = {
-        "מאפס למקצוענית": {
-          type: "מאפס למקצוענית",
-          emoji: "🎓",
-          color: "pink",
-        },
-        "סדנת וינטאג'": { type: "סדנת וינטאג'", emoji: "🎂", color: "purple" },
-        אחר: { type: "אחר", emoji: "📦", color: "emerald" },
-      };
-      return style[lead.eventType] || style["אחר"];
-    }
-    if (lead.nextCallDate === today)
-      return { type: "שיחה", emoji: "📞", color: "blue" };
-    if (lead.eventDate && lead.eventType) {
-      const style = {
-        "מאפס למקצוענית": {
-          type: "מאפס למקצוענית",
-          emoji: "🎓",
-          color: "pink",
-        },
-        "סדנת וינטאג'": { type: "סדנת וינטאג'", emoji: "🎂", color: "purple" },
-        אחר: { type: "אחר", emoji: "📦", color: "emerald" },
-      };
-      return style[lead.eventType] || style["אחר"];
-    }
-    if (lead.nextCallDate) return { type: "שיחה", emoji: "📞", color: "blue" };
     return { type: "אחר", emoji: "📦", color: "emerald" };
   };
 
   const eventInfo = getEventType();
+  const isClosed = Number(lead.status) === 3;
+  const isActive = Number(lead.status) === 1 || Number(lead.status) === 2;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end lg:items-center justify-center p-0 lg:p-4">
-      <div className="bg-white w-full lg:max-w-2xl max-h-[90vh] rounded-t-[2rem] lg:rounded-[2rem] shadow-2xl overflow-y-auto animate-in slide-in-from-bottom lg:zoom-in duration-200">
+    <div
+      className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end lg:items-center justify-center p-0 lg:p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white w-full lg:max-w-2xl max-h-[90vh] rounded-t-[2rem] lg:rounded-[2rem] shadow-2xl overflow-y-auto animate-in slide-in-from-bottom lg:zoom-in duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div
           className={`bg-${eventInfo.color}-50 p-4 lg:p-6 border-b border-${eventInfo.color}-100`}
@@ -442,8 +426,8 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
         </div>
 
         {/* Body */}
-        <div className="p-4 lg:p-6 space-y-3 lg:space-y-4">
-          {/* Contact Info */}
+        <div className="p-4 lg:p-6 space-y-4 lg:space-y-5">
+          {/* Contact Info - תמיד מוצג */}
           <div className="grid grid-cols-2 gap-3 lg:gap-4">
             <div className="bg-slate-50 p-3 lg:p-4 rounded-xl">
               <div className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase mb-1">
@@ -463,49 +447,125 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
             </div>
           </div>
 
-          {/* Status & Quote */}
-          <div className="grid grid-cols-2 gap-3 lg:gap-4">
-            <div className="bg-slate-50 p-3 lg:p-4 rounded-xl">
-              <div className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase mb-1">
-                סטטוס
+          {/* ליד נסגר - רק שינוי תאריך */}
+          {isClosed && (
+            <div className="space-y-3">
+              <div className="text-xs font-black text-slate-500 mb-2 px-1">
+                שינוי תאריך אירוע
               </div>
-              <div className="font-black text-slate-800 text-sm lg:text-base">
-                {lead.status === 1
-                  ? "חדש"
-                  : lead.status === 2
-                  ? "בתהליך"
-                  : lead.status === 3
-                  ? "נסגר"
-                  : "לא רלוונטי"}
-              </div>
+              <input
+                type="date"
+                className="w-full p-3 lg:p-4 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                value={formData.eventDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, eventDate: e.target.value })
+                }
+              />
             </div>
-            <div className="bg-slate-50 p-3 lg:p-4 rounded-xl">
-              <div className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase mb-1">
-                הצעה
-              </div>
-              <div className="font-black text-pink-600 text-sm lg:text-base">
-                ₪{lead.quote || 0}
-              </div>
-            </div>
-          </div>
+          )}
 
-          {/* Notes */}
+          {/* ליד פעיל - עריכה מהירה */}
+          {isActive && (
+            <>
+              {/* סטטוס */}
+              <div className="space-y-2">
+                <div className="text-xs font-black text-slate-500 mb-2 px-1">
+                  סטטוס
+                </div>
+                <div className="p-0.5 rounded-xl border-2 transition-all bg-slate-50">
+                  <select
+                    className={`w-full p-3 bg-transparent font-black outline-none cursor-pointer text-sm ${
+                      STATUSES[formData.status]?.color || ""
+                    }`}
+                    value={formData.status}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        status: Number(e.target.value),
+                      })
+                    }
+                  >
+                    {Object.entries(STATUSES).map(([k, v]) => (
+                      <option
+                        key={k}
+                        value={k}
+                        className="bg-white text-slate-800"
+                      >
+                        {v.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* הצעת מחיר */}
+              <div className="space-y-2">
+                <div className="text-xs font-black text-slate-500 mb-2 px-1">
+                  הצעת מחיר (₪)
+                </div>
+                <input
+                  type="number"
+                  className="w-full p-3 lg:p-4 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                  value={formData.quote}
+                  onChange={(e) =>
+                    setFormData({ ...formData, quote: e.target.value })
+                  }
+                  placeholder="0"
+                />
+              </div>
+
+              {/* עיר */}
+              <div className="space-y-2">
+                <div className="text-xs font-black text-slate-500 mb-2 px-1">
+                  עיר
+                </div>
+                <input
+                  type="text"
+                  className="w-full p-3 lg:p-4 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                  value={formData.city}
+                  onChange={(e) =>
+                    setFormData({ ...formData, city: e.target.value })
+                  }
+                  placeholder="עיר"
+                />
+              </div>
+
+              {/* שיחה עתידית */}
+              <div className="space-y-2">
+                <div className="text-xs font-black text-slate-500 mb-2 px-1">
+                  שיחה חוזרת
+                </div>
+                <input
+                  type="date"
+                  className="w-full p-3 lg:p-4 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                  value={formData.nextCallDate}
+                  onChange={(e) =>
+                    setFormData({ ...formData, nextCallDate: e.target.value })
+                  }
+                />
+              </div>
+            </>
+          )}
+
+          {/* הערות לשיחה - תמיד */}
           <div>
-            <label className="text-[10px] font-black text-slate-500 mb-2 block">
+            <div className="text-xs font-black text-slate-500 mb-2 px-1">
               הערות לשיחה
-            </label>
+            </div>
             <textarea
               className="w-full p-3 lg:p-4 bg-slate-50 border-none rounded-xl outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[100px] lg:min-h-[120px] resize-none"
               placeholder="הוסיפי הערות..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              value={formData.callDetails || ""}
+              onChange={(e) =>
+                setFormData({ ...formData, callDetails: e.target.value })
+              }
             />
           </div>
 
           {/* Actions */}
           <div className="flex gap-2 lg:gap-3 pt-2 lg:pt-4">
             <button
-              onClick={handleSaveNotes}
+              onClick={handleSave}
               className="flex-1 bg-pink-600 text-white py-3 lg:py-4 rounded-xl font-black hover:bg-pink-700 transition-all active:scale-95 text-sm lg:text-base"
             >
               שמירה
