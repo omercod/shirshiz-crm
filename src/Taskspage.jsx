@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
   Search,
   Edit2,
@@ -18,11 +18,19 @@ import {
 } from "lucide-react";
 import { useAppContext, STATUSES, SOURCES, EVENT_TYPES } from "./App";
 
+const formatIsraeliDate = (dateStr) => {
+  if (!dateStr) return "";
+  const [year, month, day] = dateStr.split("-");
+  return `${day}/${month}/${year}`;
+};
+
 export default function TasksPage() {
   const { leads, updateLead } = useAppContext();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [timeFilter] = useState("all");
+  const [customDateRange] = useState({ from: "", to: "" });
   const [sortConfig, setSortConfig] = useState({
     key: "nextCallDate",
     direction: "asc",
@@ -31,6 +39,73 @@ export default function TasksPage() {
   const [eventTypeDropdownOpen, setEventTypeDropdownOpen] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLead, setEditingLead] = useState(null);
+
+  const useDraggableScroll = (ref) => {
+    const [isDragging, setIsDragging] = useState(false);
+    const [startX, setStartX] = useState(0);
+    const [scrollLeft, setScrollLeft] = useState(0);
+
+    useEffect(() => {
+      const element = ref.current;
+      if (!element) return;
+
+      const handleMouseDown = (e) => {
+        if (e.target.closest("button, a, input, select, textarea")) return;
+
+        setIsDragging(true);
+        setStartX(e.pageX - element.offsetLeft);
+        setScrollLeft(element.scrollLeft);
+        element.style.scrollBehavior = "auto";
+      };
+
+      const handleMouseMove = (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.pageX - element.offsetLeft;
+        const walk = (x - startX) * 1.5;
+        element.scrollLeft = scrollLeft - walk;
+      };
+
+      const handleMouseUp = () => {
+        setIsDragging(false);
+        element.style.scrollBehavior = "smooth";
+      };
+
+      const handleMouseLeave = () => {
+        setIsDragging(false);
+        element.style.scrollBehavior = "smooth";
+      };
+
+      element.addEventListener("mousedown", handleMouseDown);
+      element.addEventListener("mousemove", handleMouseMove);
+      element.addEventListener("mouseup", handleMouseUp);
+      element.addEventListener("mouseleave", handleMouseLeave);
+
+      return () => {
+        element.removeEventListener("mousedown", handleMouseDown);
+        element.removeEventListener("mousemove", handleMouseMove);
+        element.removeEventListener("mouseup", handleMouseUp);
+        element.removeEventListener("mouseleave", handleMouseLeave);
+      };
+    }, [isDragging, startX, scrollLeft, ref]);
+
+    return isDragging;
+  };
+
+  const tableScrollRef = useRef(null);
+  useDraggableScroll(tableScrollRef);
+
+  // Helper function: Days until date
+  const getDaysUntil = (dateStr) => {
+    if (!dateStr) return null;
+    const targetDate = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    targetDate.setHours(0, 0, 0, 0);
+    const diffTime = targetDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
 
   const requestSort = (key) => {
     let direction = "asc";
@@ -64,10 +139,39 @@ export default function TasksPage() {
     return spaceBelow < 200 && spaceAbove > spaceBelow ? "top" : "bottom";
   };
 
+  // Time Filter
+  const filteredByTime = useMemo(() => {
+    if (timeFilter === "all") return leads;
+
+    const now = new Date();
+    const limit = new Date();
+
+    if (timeFilter === "day") {
+      const today = new Date().toISOString().split("T")[0];
+      return leads.filter((l) => l.regDate === today);
+    }
+
+    if (timeFilter === "custom") {
+      if (customDateRange.from && customDateRange.to) {
+        const fromDate = new Date(customDateRange.from);
+        const toDate = new Date(customDateRange.to);
+        return leads.filter((l) => {
+          const leadDate = new Date(l.regDate);
+          return leadDate >= fromDate && leadDate <= toDate;
+        });
+      }
+      return leads;
+    }
+
+    if (timeFilter === "week") limit.setDate(now.getDate() - 7);
+    if (timeFilter === "month") limit.setMonth(now.getMonth() - 1);
+
+    return leads.filter((l) => new Date(l.regDate) >= limit);
+  }, [leads, timeFilter, customDateRange]);
+
   // Filter: Only "חדש" (1) and "בתהליך" (2)
   const sortedAndFilteredLeads = useMemo(() => {
-    let sortableLeads = [...leads];
-
+    let sortableLeads = [...filteredByTime];
     sortableLeads = sortableLeads.filter((lead) => {
       const isActiveStatus =
         Number(lead.status) === 1 || Number(lead.status) === 2;
@@ -75,29 +179,55 @@ export default function TasksPage() {
         (lead.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (lead.phone || "").includes(searchTerm) ||
         (lead.city || "").toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        statusFilter === "all" || Number(lead.status) === Number(statusFilter);
+
+      // חישוב דחיפות
+      const daysUntil = getDaysUntil(lead.nextCallDate);
+      const isUrgent = daysUntil !== null && daysUntil <= 2 && daysUntil >= 0;
+      const isMissed = daysUntil !== null && daysUntil < 0 && lead.status === 2;
+
+      // פילטר סטטוס
+      let matchesStatus = true;
+      if (statusFilter === "urgent") {
+        matchesStatus = isUrgent;
+      } else if (statusFilter === "missed") {
+        matchesStatus = isMissed;
+      } else if (statusFilter !== "all") {
+        matchesStatus = Number(lead.status) === Number(statusFilter);
+      }
 
       return isActiveStatus && matchesSearch && matchesStatus;
     });
 
     if (sortConfig.key !== null) {
       sortableLeads.sort((a, b) => {
-        const aValue = a[sortConfig.key] || "";
-        const bValue = b[sortConfig.key] || "";
+        let aValue = a[sortConfig.key] || "";
+        let bValue = b[sortConfig.key] || "";
+
+        // 🕐 מיון מיוחד לתאריך רישום - כולל שעה!
+        if (sortConfig.key === "regDate") {
+          const aDateTime = `${a.regDate || ""}T${a.regTime || "00:00"}`;
+          const bDateTime = `${b.regDate || ""}T${b.regTime || "00:00"}`;
+          aValue = new Date(aDateTime).getTime();
+          bValue = new Date(bDateTime).getTime();
+        }
+
         if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
         if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
         return 0;
       });
     }
-
     return sortableLeads;
-  }, [leads, searchTerm, statusFilter, sortConfig]);
+  }, [filteredByTime, searchTerm, statusFilter, sortConfig]);
 
   const today = new Date().toISOString().split("T")[0];
-  const urgentCount = sortedAndFilteredLeads.filter(
-    (l) => l.nextCallDate && l.nextCallDate <= today
-  ).length;
+  const urgentCount = sortedAndFilteredLeads.filter((l) => {
+    const days = getDaysUntil(l.nextCallDate);
+    return days !== null && days <= 2 && days >= 0;
+  }).length;
+  const missedCount = sortedAndFilteredLeads.filter((l) => {
+    const days = getDaysUntil(l.nextCallDate);
+    return days !== null && days < 0 && l.status === 2;
+  }).length;
 
   const validateForm = (data) => {
     if (!data.name || data.name.trim().length < 2) return "נא להזין שם תקין";
@@ -175,12 +305,14 @@ export default function TasksPage() {
             <option value="all">הכל</option>
             <option value="1">חדש</option>
             <option value="2">בתהליך</option>
+            <option value="urgent">🔥 דחוף (יומיים)</option>
+            <option value="missed">⏰ לא הספקתי</option>
           </select>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-3 gap-2 lg:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4">
         <div className="bg-blue-50 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-blue-100">
           <div className="text-[10px] lg:text-sm font-bold text-blue-600 mb-1">
             חדשים
@@ -205,32 +337,33 @@ export default function TasksPage() {
         </div>
         <div className="bg-rose-50 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-rose-100">
           <div className="text-[10px] lg:text-sm font-bold text-rose-600 mb-1">
-            דחוף
+            דחוף (יומיים)
           </div>
           <div className="text-xl lg:text-3xl font-black text-rose-700">
             {urgentCount}
+          </div>
+        </div>
+        <div className="bg-orange-50 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-orange-100">
+          <div className="text-[10px] lg:text-sm font-bold text-orange-600 mb-1">
+            לא הספקתי
+          </div>
+          <div className="text-xl lg:text-3xl font-black text-orange-700">
+            {missedCount}
           </div>
         </div>
       </div>
 
       {/* Desktop Table */}
       <div className="hidden lg:block bg-white rounded-[1.5rem] border border-slate-200 shadow-sm overflow-hidden">
-        {/* Top Scrollbar */}
-        <div
-          className="overflow-x-auto border-b border-slate-100"
-          style={{ height: "17px" }}
-          onScroll={(e) => {
-            const table = document.getElementById("tasks-table-scroll");
-            if (table) table.scrollLeft = e.currentTarget.scrollLeft;
-          }}
-        >
-          <div style={{ height: "1px", width: "1350px" }}></div>
-        </div>
-
         {/* Main Table */}
         <div
+          ref={tableScrollRef}
           id="tasks-table-scroll"
-          className="overflow-x-auto"
+          className="overflow-x-auto select-none"
+          style={{
+            WebkitOverflowScrolling: "touch",
+            touchAction: "pan-x pan-y",
+          }}
           onScroll={(e) => {
             const topScroll = e.currentTarget.previousElementSibling;
             if (topScroll) topScroll.scrollLeft = e.currentTarget.scrollLeft;
@@ -265,18 +398,26 @@ export default function TasksPage() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {sortedAndFilteredLeads.map((lead) => {
+                const daysUntil = getDaysUntil(lead.nextCallDate);
                 const isUrgent =
-                  lead.nextCallDate && lead.nextCallDate <= today;
+                  daysUntil !== null && daysUntil <= 2 && daysUntil >= 0;
+                const isMissed =
+                  daysUntil !== null && daysUntil < 0 && lead.status === 2;
+
                 return (
                   <tr
                     key={lead.id}
                     className={`hover:bg-slate-50/50 transition-colors group ${
-                      isUrgent ? "bg-rose-50/30" : ""
+                      isMissed
+                        ? "bg-orange-50/40"
+                        : isUrgent
+                        ? "bg-rose-50/30"
+                        : ""
                     }`}
                   >
                     <td className="p-5">
                       <div className="font-bold text-slate-400">
-                        {lead.regDate || "לא הוזן"}
+                        {formatIsraeliDate(lead.regDate) || "לא הוזן"}
                       </div>
                       {lead.regTime && (
                         <div className="text-xs text-slate-300 font-semibold mt-0.5">
@@ -287,12 +428,21 @@ export default function TasksPage() {
                     <td className="p-5">
                       <div
                         className={`flex items-center gap-1.5 font-bold text-xs ${
-                          isUrgent ? "text-rose-600" : "text-blue-600"
+                          isMissed
+                            ? "text-orange-600"
+                            : isUrgent
+                            ? "text-rose-600"
+                            : "text-blue-600"
                         }`}
                       >
                         <Clock size={12} />
                         {lead.nextCallDate || "אין"}
-                        {isUrgent && (
+                        {isMissed && (
+                          <span className="bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded text-[9px] font-black">
+                            לא הספקתי!
+                          </span>
+                        )}
+                        {isUrgent && !isMissed && (
                           <span className="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded text-[9px] font-black">
                             דחוף!
                           </span>
@@ -431,127 +581,174 @@ export default function TasksPage() {
 }
 
 // Mobile Task Card Component
+// Mobile Task Card Component - COMPLETE & CORRECTED
 const MobileTaskCard = ({
   lead,
-  isUrgent,
-  today,
   statusDropdownOpen,
   setStatusDropdownOpen,
   handleQuickStatusChange,
   onEdit,
-}) => (
-  <div
-    className={`bg-white rounded-2xl p-4 border-2 shadow-sm active:scale-[0.98] transition-all ${
-      isUrgent ? "border-rose-200 bg-rose-50/30" : "border-slate-100"
-    }`}
-  >
-    {/* Header */}
-    <div className="flex items-start justify-between mb-3">
-      <div className="flex-1">
-        <h3 className="font-black text-slate-800 text-lg mb-1">
-          {lead.name || "ללא שם"}
-        </h3>
-        <div className="flex items-center gap-2 flex-wrap">
-          <StatusDropdown
-            lead={lead}
-            statusDropdownOpen={statusDropdownOpen}
-            setStatusDropdownOpen={setStatusDropdownOpen}
-            handleQuickStatusChange={handleQuickStatusChange}
-            getDropdownPosition={() => "bottom"}
-          />
-          <span
-            className={`px-2 py-1 rounded-lg text-[9px] font-black border ${
-              SOURCES[lead.source]?.color || SOURCES["אחר"].color
-            }`}
-          >
-            {lead.source}
-          </span>
-          {lead.eventType && (
+}) => {
+  // Helper function
+  const getDaysUntil = (dateStr) => {
+    if (!dateStr) return null;
+    const targetDate = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    targetDate.setHours(0, 0, 0, 0);
+    const diffTime = targetDate - today;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const daysUntil = getDaysUntil(lead.nextCallDate);
+  const isUrgent = daysUntil !== null && daysUntil <= 2 && daysUntil >= 0;
+  const isMissed = daysUntil !== null && daysUntil < 0 && lead.status === 2;
+
+  return (
+    <div
+      className={`bg-white rounded-2xl p-4 border-2 shadow-sm active:scale-[0.98] transition-all relative ${
+        isMissed
+          ? "border-orange-200 bg-orange-50/30"
+          : isUrgent
+          ? "border-rose-200 bg-rose-50/30"
+          : "border-slate-100"
+      }`}
+    >
+      {/* Badges */}
+      {isMissed && (
+        <div className="absolute top-2 left-2 bg-orange-100 text-orange-700 px-2 py-1 rounded-lg text-[9px] font-black">
+          ⏰ לא הספקתי
+        </div>
+      )}
+      {isUrgent && !isMissed && (
+        <div className="absolute top-2 left-2 bg-rose-100 text-rose-700 px-2 py-1 rounded-lg text-[9px] font-black">
+          🔥 דחוף
+        </div>
+      )}
+
+      {/* Header */}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1">
+          <h3 className="font-black text-slate-800 text-lg mb-1">
+            {lead.name || "ללא שם"}
+          </h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <StatusDropdown
+              lead={lead}
+              statusDropdownOpen={statusDropdownOpen}
+              setStatusDropdownOpen={setStatusDropdownOpen}
+              handleQuickStatusChange={handleQuickStatusChange}
+              getDropdownPosition={() => "bottom"}
+            />
             <span
               className={`px-2 py-1 rounded-lg text-[9px] font-black border ${
-                EVENT_TYPES[lead.eventType]?.color || EVENT_TYPES["אחר"].color
+                SOURCES[lead.source]?.color || SOURCES["אחר"].color
               }`}
             >
-              {lead.eventType}
+              {lead.source}
             </span>
-          )}
+            {lead.eventType && (
+              <span
+                className={`px-2 py-1 rounded-lg text-[9px] font-black border ${
+                  EVENT_TYPES[lead.eventType]?.color || EVENT_TYPES["אחר"].color
+                }`}
+              >
+                {lead.eventType}
+              </span>
+            )}
+          </div>
         </div>
       </div>
-    </div>
 
-    {/* Call Date */}
-    {lead.nextCallDate && (
-      <div
-        className={`flex items-center gap-2 mb-3 p-2 rounded-lg ${
-          isUrgent ? "bg-rose-100" : "bg-blue-50"
-        }`}
-      >
-        <Clock
-          size={14}
-          className={isUrgent ? "text-rose-600" : "text-blue-600"}
-        />
-        <span
-          className={`text-xs font-bold ${
-            isUrgent ? "text-rose-700" : "text-blue-700"
+      {/* Call Date */}
+      {lead.nextCallDate && (
+        <div
+          className={`flex items-center gap-2 mb-3 p-2 rounded-lg ${
+            isMissed ? "bg-orange-100" : isUrgent ? "bg-rose-100" : "bg-blue-50"
           }`}
         >
-          {isUrgent ? "דחוף! " : ""}שיחה חוזרת: {lead.nextCallDate}
-        </span>
-      </div>
-    )}
-
-    {/* Contact Info */}
-    <div className="space-y-2 mb-3">
-      <div className="flex items-center gap-2 text-sm">
-        <Phone size={14} className="text-pink-400" />
-        <span className="font-bold text-slate-700">{lead.phone || "חסר"}</span>
-      </div>
-      {lead.email && (
-        <div className="flex items-center gap-2 text-xs">
-          <AtSign size={12} className="text-slate-400" />
-          <span className="text-slate-500">{lead.email}</span>
+          <Clock
+            size={14}
+            className={
+              isMissed
+                ? "text-orange-600"
+                : isUrgent
+                ? "text-rose-600"
+                : "text-blue-600"
+            }
+          />
+          <span
+            className={`text-xs font-bold ${
+              isMissed
+                ? "text-orange-700"
+                : isUrgent
+                ? "text-rose-700"
+                : "text-blue-700"
+            }`}
+          >
+            {isMissed ? "לא הספקתי! " : isUrgent ? "דחוף! " : ""}שיחה חוזרת:{" "}
+            {lead.nextCallDate}
+          </span>
         </div>
       )}
-      {lead.regDate && (
-        <div className="text-xs text-slate-400 font-semibold">
-          נרשם: {lead.regDate}
-          {lead.regTime && <span className="mr-2">{lead.regTime}</span>}
+
+      {/* Contact Info */}
+      <div className="space-y-2 mb-3">
+        <div className="flex items-center gap-2 text-sm">
+          <Phone size={14} className="text-pink-400" />
+          <span className="font-bold text-slate-700">
+            {lead.phone || "חסר"}
+          </span>
+        </div>
+        {lead.email && (
+          <div className="flex items-center gap-2 text-xs">
+            <AtSign size={12} className="text-slate-400" />
+            <span className="text-slate-500">{lead.email}</span>
+          </div>
+        )}
+        {lead.regDate && (
+          <div className="text-xs text-slate-400 font-semibold">
+            נרשם: {formatIsraeliDate(lead.regDate)}
+            {lead.regTime && <span className="mr-2">{lead.regTime}</span>}
+          </div>
+        )}
+      </div>
+
+      {/* Notes */}
+      {lead.callDetails && (
+        <div className="bg-slate-50 p-3 rounded-xl mb-3">
+          <p className="text-xs text-slate-600 line-clamp-2">
+            {lead.callDetails}
+          </p>
         </div>
       )}
-    </div>
 
-    {/* Notes */}
-    {lead.callDetails && (
-      <div className="bg-slate-50 p-3 rounded-xl mb-3">
-        <p className="text-xs text-slate-600 line-clamp-2">
-          {lead.callDetails}
-        </p>
-      </div>
-    )}
-
-    {/* Footer Actions */}
-    <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-      <div className="font-black text-pink-600 text-lg">₪{lead.quote || 0}</div>
-      <div className="flex gap-2">
-        <a
-          href={`https://wa.me/972${lead.phone?.substring(1)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1.5 bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold text-sm active:scale-95 transition-all"
-        >
-          <Phone size={16} />
-          WhatsApp
-        </a>
-        <button
-          onClick={onEdit}
-          className="p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
-        >
-          <Edit2 size={18} />
-        </button>
+      {/* Footer Actions */}
+      <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+        <div className="font-black text-pink-600 text-lg">
+          ₪{lead.quote || 0}
+        </div>
+        <div className="flex gap-2">
+          <a
+            href={`https://wa.me/972${lead.phone?.substring(1)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold text-sm active:scale-95 transition-all"
+          >
+            <Phone size={16} />
+            WhatsApp
+          </a>
+          <button
+            onClick={onEdit}
+            className="p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+          >
+            <Edit2 size={18} />
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Status Dropdown Component (Shared)
 const StatusDropdown = ({
@@ -679,9 +876,9 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end lg:items-center justify-center p-0 lg:p-4">
-      <div className="bg-white w-full lg:max-w-4xl max-h-[95vh] lg:max-h-[90vh] rounded-t-[2rem] lg:rounded-[2.5rem] shadow-2xl overflow-y-auto flex flex-col animate-in slide-in-from-bottom lg:zoom-in duration-200">
+      <div className="bg-white w-full lg:max-w-4xl h-[95vh] lg:max-h-[90vh] rounded-t-[2rem] lg:rounded-[2.5rem] shadow-2xl flex flex-col animate-in slide-in-from-bottom lg:zoom-in duration-200">
         {/* Sticky Header */}
-        <div className="sticky top-0 bg-white px-4 lg:px-8 py-4 lg:py-6 border-b border-slate-50 flex justify-between items-center z-20 gap-3">
+        <div className="flex-shrink-0 bg-white px-4 lg:px-8 py-4 lg:py-6 border-b border-slate-50 flex justify-between items-center z-20 gap-3">
           <div className="flex items-center gap-2 lg:gap-4 flex-1 min-w-0">
             <button
               onClick={onClose}
@@ -708,8 +905,8 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
         </div>
 
         {/* Form Content */}
-        <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 flex-1">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="overflow-y-auto flex-1">
+          <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 pb-24">
             {/* Contact Info */}
             <div className="space-y-3 lg:space-y-4">
               <SectionTitle icon={<User size={14} />} title="פרטי קשר" />

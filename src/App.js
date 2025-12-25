@@ -207,7 +207,9 @@ export default function App() {
           hour: "2-digit",
           minute: "2-digit",
         }),
+      event2Date: leadData.event2Date || "",
     };
+
     try {
       await addDoc(collection(db, "leads"), payload);
       return { success: true };

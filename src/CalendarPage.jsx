@@ -37,10 +37,19 @@ export default function CalendarPage() {
         events.push({ ...lead, type: "שיחה" });
       }
 
-      // אירוע עם סוג
+      // אירוע ראשון
       if (lead.eventDate === dateStr) {
         const eventType = lead.eventType || "אחר";
         events.push({ ...lead, type: eventType });
+      }
+
+      // 🎂 אירוע שני - רק למי שבאפס למקצוענית + נסגר
+      if (
+        lead.event2Date === dateStr &&
+        lead.eventType === "מאפס למקצוענית" &&
+        lead.status === 3
+      ) {
+        events.push({ ...lead, type: "מאפס למקצוענית - מפגש 2" });
       }
     });
 
@@ -71,6 +80,12 @@ export default function CalendarPage() {
         border: "border-pink-100",
         emoji: "🎓",
       },
+      "מאפס למקצוענית - מפגש 2": {
+        bg: "bg-purple-50",
+        text: "text-pink-700",
+        border: "border-pink-100",
+        emoji: "🎓",
+      },
       "סדנת וינטאג'": {
         bg: "bg-purple-50",
         text: "text-purple-700",
@@ -87,7 +102,6 @@ export default function CalendarPage() {
 
     return styles[eventType] || styles["אחר"];
   };
-
   const prevMonth = () => {
     setCurrentDate(
       new Date(currentDate.getFullYear(), currentDate.getMonth() - 1)
@@ -297,7 +311,11 @@ export default function CalendarPage() {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-pink-500"></div>
-            <span className="text-slate-600">🎓 מאפס למקצוענית</span>
+            <span className="text-slate-600">🎓 מאפס (מפגש 1)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-pink-500"></div>
+            <span className="text-slate-600">🎓 מאפס (מפגש 2)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-purple-500"></div>
@@ -345,6 +363,11 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
           type: "מאפס למקצוענית",
           emoji: "🎓",
           color: "pink",
+        },
+        "מאפס למקצוענית - מפגש 2": {
+          type: "מאפס למקצוענית - מפגש 2",
+          emoji: "🎂",
+          color: "purple",
         },
         "סדנת וינטאג'": { type: "סדנת וינטאג'", emoji: "🎂", color: "purple" },
         אחר: { type: "אחר", emoji: "📦", color: "emerald" },
@@ -405,7 +428,8 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
               <p
                 className={`text-xs lg:text-sm font-bold text-${eventInfo.color}-600`}
               >
-                {eventInfo.type} • {lead.eventDate || lead.nextCallDate}
+                {eventInfo.type} •{" "}
+                {lead.event2Date || lead.eventDate || lead.nextCallDate}
               </p>
             </div>
             <button

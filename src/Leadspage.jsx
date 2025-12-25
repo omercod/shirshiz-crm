@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   Plus,
   Search,
@@ -15,15 +15,25 @@ import {
   User,
   MessageCircle,
   MapPin,
+  Calendar,
   Calendar as CalendarIcon,
 } from "lucide-react";
 import { useAppContext, STATUSES, SOURCES, EVENT_TYPES } from "./App";
+
+const formatIsraeliDate = (dateStr) => {
+  if (!dateStr) return "";
+  const [year, month, day] = dateStr.split("-");
+  return `${day}/${month}/${year}`;
+};
 
 export default function LeadsPage() {
   const { leads, addLead, updateLead, deleteLead } = useAppContext();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [timeFilter, setTimeFilter] = useState("all");
+  const [customDateRange, setCustomDateRange] = useState({ from: "", to: "" });
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLead, setEditingLead] = useState(null);
   const [formError, setFormError] = useState("");
@@ -33,6 +43,63 @@ export default function LeadsPage() {
   });
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(null);
   const [eventTypeDropdownOpen, setEventTypeDropdownOpen] = useState(null);
+
+  const useDraggableScroll = (ref) => {
+    const [isDragging, setIsDragging] = useState(false);
+    const [startX, setStartX] = useState(0);
+    const [scrollLeft, setScrollLeft] = useState(0);
+
+    useEffect(() => {
+      const element = ref.current;
+      if (!element) return;
+
+      const handleMouseDown = (e) => {
+        // התעלם מלחיצה על אלמנטים אינטראקטיביים
+        if (e.target.closest("button, a, input, select, textarea")) return;
+
+        setIsDragging(true);
+        setStartX(e.pageX - element.offsetLeft);
+        setScrollLeft(element.scrollLeft);
+        element.style.scrollBehavior = "auto";
+      };
+
+      const handleMouseMove = (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.pageX - element.offsetLeft;
+        const walk = (x - startX) * 1.5;
+        element.scrollLeft = scrollLeft - walk;
+      };
+
+      const handleMouseUp = () => {
+        setIsDragging(false);
+        element.style.scrollBehavior = "smooth";
+      };
+
+      const handleMouseLeave = () => {
+        setIsDragging(false);
+        element.style.scrollBehavior = "smooth";
+      };
+
+      element.addEventListener("mousedown", handleMouseDown);
+      element.addEventListener("mousemove", handleMouseMove);
+      element.addEventListener("mouseup", handleMouseUp);
+      element.addEventListener("mouseleave", handleMouseLeave);
+
+      return () => {
+        element.removeEventListener("mousedown", handleMouseDown);
+        element.removeEventListener("mousemove", handleMouseMove);
+        element.removeEventListener("mouseup", handleMouseUp);
+        element.removeEventListener("mouseleave", handleMouseLeave);
+      };
+    }, [isDragging, startX, scrollLeft, ref]);
+
+    return isDragging;
+  };
+
+  // יצירת ref לטבלה
+  const tableScrollRef = useRef(null);
+  useDraggableScroll(tableScrollRef);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -107,8 +174,38 @@ export default function LeadsPage() {
     return spaceBelow < 200 && spaceAbove > spaceBelow ? "top" : "bottom";
   };
 
+  // Time Filter
+  const filteredByTime = useMemo(() => {
+    if (timeFilter === "all") return leads;
+
+    const now = new Date();
+    const limit = new Date();
+
+    if (timeFilter === "day") {
+      const today = new Date().toISOString().split("T")[0];
+      return leads.filter((l) => l.regDate === today);
+    }
+
+    if (timeFilter === "custom") {
+      if (customDateRange.from && customDateRange.to) {
+        const fromDate = new Date(customDateRange.from);
+        const toDate = new Date(customDateRange.to);
+        return leads.filter((l) => {
+          const leadDate = new Date(l.regDate);
+          return leadDate >= fromDate && leadDate <= toDate;
+        });
+      }
+      return leads;
+    }
+
+    if (timeFilter === "week") limit.setDate(now.getDate() - 7);
+    if (timeFilter === "month") limit.setMonth(now.getMonth() - 1);
+
+    return leads.filter((l) => new Date(l.regDate) >= limit);
+  }, [leads, timeFilter, customDateRange]);
+
   const sortedAndFilteredLeads = useMemo(() => {
-    let sortableLeads = [...leads];
+    let sortableLeads = [...filteredByTime];
     sortableLeads = sortableLeads.filter((lead) => {
       const matchesSearch =
         (lead.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -129,7 +226,7 @@ export default function LeadsPage() {
       });
     }
     return sortableLeads;
-  }, [leads, searchTerm, statusFilter, sortConfig]);
+  }, [filteredByTime, searchTerm, statusFilter, sortConfig]);
 
   const newLeadTemplate = {
     name: "",
@@ -143,6 +240,7 @@ export default function LeadsPage() {
     quote: "",
     nextCallDate: "",
     eventDate: "",
+    event2Date: "",
     callDetails: "",
     regDate: new Date().toISOString().split("T")[0],
   };
@@ -150,25 +248,174 @@ export default function LeadsPage() {
   return (
     <div className="space-y-4 lg:space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
       {/* Header */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 lg:gap-4">
-        <div>
-          <h2 className="text-2xl lg:text-3xl font-black text-slate-800">
-            לידים ולקוחות
-          </h2>
-          <p className="text-slate-400 font-bold text-xs lg:text-sm">
-            שלום שיר, ברוכה הבאה למערכת הניהול שלך
-          </p>
+      <header className="flex flex-col gap-4 mb-6 mt-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+          <div>
+            <h2 className="text-2xl lg:text-3xl font-black text-slate-800">
+              לידים ולקוחות
+            </h2>
+            <p className="text-slate-400 font-bold text-xs lg:text-sm">
+              שלום שיר, ברוכה הבאה למערכת הניהול שלך
+            </p>
+          </div>
+
+          {/* Time Filter */}
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
+            {[
+              { val: "day", label: "היום" },
+              { val: "week", label: "שבוע" },
+              { val: "month", label: "חודש" },
+              { val: "all", label: "הכל" },
+            ].map((opt) => (
+              <button
+                key={opt.val}
+                onClick={() => {
+                  setTimeFilter(opt.val);
+                  setShowCustomPicker(false);
+                }}
+                className={`px-3 lg:px-4 py-2 rounded-lg font-black text-xs lg:text-sm transition-all active:scale-95 ${
+                  timeFilter === opt.val
+                    ? "bg-pink-600 text-white shadow-lg"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+            <button
+              onClick={() => {
+                setTimeFilter("custom");
+                setShowCustomPicker(!showCustomPicker);
+              }}
+              className={`flex items-center gap-1.5 px-3 lg:px-4 py-2 rounded-lg font-black text-xs lg:text-sm transition-all active:scale-95 ${
+                timeFilter === "custom"
+                  ? "bg-pink-600 text-white shadow-lg"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              <Calendar size={14} />
+              מותאם אישית
+            </button>
+          </div>
         </div>
+
+        {/* Custom Date Picker */}
+        {showCustomPicker && (
+          <div className="bg-white p-4 rounded-xl border shadow-sm animate-in slide-in-from-top-2 duration-200">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <label className="text-xs font-black text-slate-500 mb-2 block">
+                  מתאריך
+                </label>
+                <input
+                  type="date"
+                  value={customDateRange.from}
+                  onChange={(e) =>
+                    setCustomDateRange({
+                      ...customDateRange,
+                      from: e.target.value,
+                    })
+                  }
+                  className="w-full p-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg outline-none font-bold text-sm focus:border-pink-400"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="text-xs font-black text-slate-500 mb-2 block">
+                  עד תאריך
+                </label>
+                <input
+                  type="date"
+                  value={customDateRange.to}
+                  onChange={(e) =>
+                    setCustomDateRange({
+                      ...customDateRange,
+                      to: e.target.value,
+                    })
+                  }
+                  className="w-full p-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg outline-none font-bold text-sm focus:border-pink-400"
+                />
+              </div>
+              <button
+                onClick={() => {
+                  if (customDateRange.from && customDateRange.to) {
+                    setShowCustomPicker(false);
+                  }
+                }}
+                disabled={!customDateRange.from || !customDateRange.to}
+                className="mt-7 px-4 py-2.5 bg-pink-600 text-white rounded-lg font-black hover:bg-pink-700 disabled:bg-slate-300 transition-all text-sm"
+              >
+                הצג
+              </button>
+            </div>
+            {customDateRange.from && customDateRange.to && (
+              <div className="mt-3 text-xs font-bold text-slate-500 text-center">
+                מציג: {formatIsraeliDate(customDateRange.from)} -{" "}
+                {formatIsraeliDate(customDateRange.to)}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Add Lead Button - Mobile */}
         <button
           onClick={() => {
             setEditingLead(newLeadTemplate);
             setIsModalOpen(true);
           }}
-          className="bg-pink-600 hover:bg-pink-700 text-white px-6 lg:px-8 py-3 lg:py-4 rounded-xl lg:rounded-2xl shadow-xl font-black flex items-center gap-2 transition-all active:scale-95 w-full md:w-auto justify-center text-sm lg:text-base"
+          className="md:hidden bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-xl shadow-xl font-black flex items-center justify-center gap-2 transition-all active:scale-95 text-sm"
         >
           <Plus size={20} /> הוספת ליד
         </button>
       </header>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-6">
+        <div className="bg-blue-50 p-3 lg:p-4 rounded-xl border border-blue-100">
+          <div className="text-xs lg:text-sm font-black uppercase opacity-80 mb-1 text-blue-600">
+            סה״כ לידים
+          </div>
+          <div className="text-xl lg:text-3xl font-black text-blue-600">
+            {filteredByTime.length}
+          </div>
+        </div>
+        <div className="bg-blue-50 p-3 lg:p-4 rounded-xl border border-blue-100">
+          <div className="text-xs lg:text-sm font-black uppercase opacity-80 mb-1 text-blue-600">
+            חדש
+          </div>
+          <div className="text-xl lg:text-3xl font-black text-blue-600">
+            {filteredByTime.filter((l) => l.status === 1).length}
+          </div>
+        </div>
+        <div className="bg-amber-50 p-3 lg:p-4 rounded-xl border border-amber-100">
+          <div className="text-xs lg:text-sm font-black uppercase opacity-80 mb-1 text-amber-600">
+            בתהליך
+          </div>
+          <div className="text-xl lg:text-3xl font-black text-amber-600">
+            {filteredByTime.filter((l) => l.status === 2).length}
+          </div>
+        </div>
+        <div className="bg-emerald-50 p-3 lg:p-4 rounded-xl border border-emerald-100">
+          <div className="text-xs lg:text-sm font-black uppercase opacity-80 mb-1 text-emerald-600">
+            נסגר
+          </div>
+          <div className="text-xl lg:text-3xl font-black text-emerald-600">
+            {filteredByTime.filter((l) => l.status === 3).length}
+          </div>
+        </div>
+      </div>
+
+      {/* Add Lead Button - Desktop Only */}
+      <div className="hidden md:flex justify-end mb-4">
+        <button
+          onClick={() => {
+            setEditingLead(newLeadTemplate);
+            setIsModalOpen(true);
+          }}
+          className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-4 rounded-2xl shadow-xl font-black flex items-center gap-2 transition-all active:scale-95"
+        >
+          <Plus size={20} /> הוספת ליד
+        </button>
+      </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-2 lg:gap-3 items-stretch sm:items-center bg-white p-3 rounded-xl lg:rounded-2xl border shadow-sm">
@@ -204,22 +451,15 @@ export default function LeadsPage() {
 
       {/* Desktop Table */}
       <div className="hidden lg:block bg-white rounded-[1.5rem] border border-slate-200 shadow-sm overflow-hidden">
-        {/* Top Scrollbar */}
-        <div
-          className="overflow-x-auto border-b border-slate-100"
-          style={{ height: "17px" }}
-          onScroll={(e) => {
-            const table = document.getElementById("leads-table-scroll");
-            if (table) table.scrollLeft = e.currentTarget.scrollLeft;
-          }}
-        >
-          <div style={{ height: "1px", width: "1400px" }}></div>
-        </div>
-
         {/* Main Table */}
         <div
+          ref={tableScrollRef}
           id="leads-table-scroll"
-          className="overflow-x-auto"
+          className="overflow-x-auto select-none"
+          style={{
+            WebkitOverflowScrolling: "touch",
+            touchAction: "pan-x pan-y",
+          }}
           onScroll={(e) => {
             const topScroll = e.currentTarget.previousElementSibling;
             if (topScroll) topScroll.scrollLeft = e.currentTarget.scrollLeft;
@@ -248,7 +488,8 @@ export default function LeadsPage() {
                 <th className="p-5">גיל ומקצוע</th>
                 <th className="p-5">הצעה</th>
                 <th className="p-5">שיחה חוזרת</th>
-                <th className="p-5">ת. האירוע</th>
+                <th className="p-5">אירוע 1</th>
+                <th className="p-5">אירוע 2</th>
                 <th className="p-5 text-center">פעולות</th>
               </tr>
             </thead>
@@ -260,7 +501,7 @@ export default function LeadsPage() {
                 >
                   <td className="p-5">
                     <div className="font-bold text-slate-400">
-                      {lead.regDate || "לא הוזן"}
+                      {formatIsraeliDate(lead.regDate) || "לא הוזן"}
                     </div>
                     {lead.regTime && (
                       <div className="text-xs text-slate-300 font-semibold mt-0.5">
@@ -329,11 +570,22 @@ export default function LeadsPage() {
                   </td>
                   <td className="p-5">
                     <div className="flex items-center gap-1.5 font-bold text-blue-600 text-xs">
-                      📞 {lead.nextCallDate || "אין"}
+                      📞 {formatIsraeliDate(lead.nextCallDate) || "אין"}
                     </div>
                   </td>
                   <td className="p-5 font-bold text-emerald-600 text-xs">
-                    {lead.eventDate || "טרם נקבע"}
+                    {formatIsraeliDate(lead.eventDate) || "טרם נקבע"}
+                  </td>
+                  <td className="p-5">
+                    {lead.eventType === "מאפס למקצוענית" &&
+                    lead.status === 3 &&
+                    lead.event2Date ? (
+                      <span className="font-bold text-purple-600 text-xs">
+                        🎂 {formatIsraeliDate(lead.event2Date)}
+                      </span>
+                    ) : (
+                      <span className="text-slate-300 text-xs">-</span>
+                    )}
                   </td>
                   <td className="p-5">
                     <div className="flex justify-center gap-1">
@@ -475,34 +727,46 @@ const MobileLeadCard = ({
       )}
       {lead.regDate && (
         <div className="text-xs text-slate-400 font-semibold">
-          נרשם: {lead.regDate}
+          נרשם: {formatIsraeliDate(lead.regDate)}
           {lead.regTime && <span className="mr-2">{lead.regTime}</span>}
         </div>
       )}
     </div>
 
     {/* Dates */}
-    <div className="flex gap-2 mb-3">
+    <div className="flex gap-2 mb-3 flex-wrap">
       {lead.nextCallDate && (
-        <div className="flex-1 bg-blue-50 p-2 rounded-lg">
+        <div className="flex-1 min-w-[100px] bg-blue-50 p-2 rounded-lg">
           <div className="text-[9px] text-blue-600 font-bold mb-0.5">
             שיחה חוזרת
           </div>
           <div className="text-xs font-black text-blue-700">
-            {lead.nextCallDate}
+            {formatIsraeliDate(lead.nextCallDate)}
           </div>
         </div>
       )}
       {lead.eventDate && (
-        <div className="flex-1 bg-emerald-50 p-2 rounded-lg">
+        <div className="flex-1 min-w-[100px] bg-emerald-50 p-2 rounded-lg">
           <div className="text-[9px] text-emerald-600 font-bold mb-0.5">
-            אירוע
+            אירוע 1
           </div>
           <div className="text-xs font-black text-emerald-700">
-            {lead.eventDate}
+            {formatIsraeliDate(lead.eventDate)}
           </div>
         </div>
       )}
+      {lead.eventType === "מאפס למקצוענית" &&
+        lead.status === 3 &&
+        lead.event2Date && (
+          <div className="flex-1 min-w-[100px] bg-purple-50 p-2 rounded-lg">
+            <div className="text-[9px] text-purple-600 font-bold mb-0.5">
+              🎂 אירוע 2
+            </div>
+            <div className="text-xs font-black text-purple-700">
+              {formatIsraeliDate(lead.event2Date)}
+            </div>
+          </div>
+        )}
     </div>
 
     {/* Actions */}
@@ -650,9 +914,9 @@ const LeadModal = ({ lead, onSave, onClose, error }) => {
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end lg:items-center justify-center p-0 lg:p-4">
-      <div className="bg-white w-full lg:max-w-4xl max-h-[95vh] lg:max-h-[90vh] rounded-t-[2rem] lg:rounded-[2.5rem] shadow-2xl overflow-y-auto flex flex-col animate-in slide-in-from-bottom lg:zoom-in duration-200">
+      <div className="bg-white w-full lg:max-w-4xl h-[95vh] lg:max-h-[90vh] rounded-t-[2rem] lg:rounded-[2.5rem] shadow-2xl flex flex-col animate-in slide-in-from-bottom lg:zoom-in duration-200">
         {/* Header */}
-        <div className="sticky top-0 bg-white px-4 lg:px-8 py-4 lg:py-6 border-b border-slate-50 flex justify-between items-center z-20 gap-3">
+        <div className="bg-white px-4 lg:px-8 py-4 lg:py-6 border-b border-slate-50 flex justify-between items-center z-20 gap-3 flex-shrink-0">
           <div className="flex items-center gap-2 lg:gap-4 flex-1 min-w-0">
             <button
               onClick={onClose}
@@ -679,152 +943,180 @@ const LeadModal = ({ lead, onSave, onClose, error }) => {
         </div>
 
         {/* Form */}
-        <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 flex-1">
-          {error && (
-            <div className="bg-rose-50 text-rose-600 p-3 lg:p-4 rounded-xl lg:rounded-2xl flex items-center gap-2 lg:gap-3 font-black text-xs lg:text-sm border border-rose-100">
-              <AlertCircle size={18} className="lg:hidden flex-shrink-0" />
-              <AlertCircle
-                size={20}
-                className="hidden lg:block flex-shrink-0"
-              />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-            {/* Contact */}
-            <div className="space-y-3 lg:space-y-4">
-              <SectionTitle icon={<User size={14} />} title="פרטי קשר" />
-              <div className="space-y-3">
-                <InputField
-                  label="שם *"
-                  value={formData.name}
-                  onChange={(v) => setFormData({ ...formData, name: v })}
-                  placeholder="שם מלא"
+        <div className="overflow-y-auto flex-1">
+          <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 pb-24">
+            {error && (
+              <div className="bg-rose-50 text-rose-600 p-3 lg:p-4 rounded-xl lg:rounded-2xl flex items-center gap-2 lg:gap-3 font-black text-xs lg:text-sm border border-rose-100">
+                <AlertCircle size={18} className="lg:hidden flex-shrink-0" />
+                <AlertCircle
+                  size={20}
+                  className="hidden lg:block flex-shrink-0"
                 />
-                <InputField
-                  label="טלפון *"
-                  value={formData.phone}
-                  onChange={(v) => setFormData({ ...formData, phone: v })}
-                  placeholder="05XXXXXXXX"
-                />
-                <InputField
-                  label="מייל"
-                  value={formData.email}
-                  onChange={(v) => setFormData({ ...formData, email: v })}
-                  placeholder="email@example.com"
-                  icon={<AtSign size={14} />}
-                />
+                <span>{error}</span>
               </div>
-            </div>
+            )}
 
-            {/* Status */}
-            <div className="space-y-3 lg:space-y-4">
-              <SectionTitle icon={<MessageCircle size={14} />} title="סטטוס" />
-              <div className="space-y-3">
-                <SelectField
-                  label="סטטוס"
-                  value={formData.status}
-                  onChange={(v) => setFormData({ ...formData, status: v })}
-                  options={Object.entries(STATUSES).map(([k, v]) => ({
-                    val: k,
-                    label: v.label,
-                  }))}
-                  dynamicClass={STATUSES[formData.status]?.color}
-                />
-                <SelectField
-                  label="מקור"
-                  value={formData.source}
-                  onChange={(v) => setFormData({ ...formData, source: v })}
-                  options={Object.keys(SOURCES).map((s) => ({
-                    val: s,
-                    label: s,
-                  }))}
-                  dynamicClass={
-                    SOURCES[formData.source]?.color || SOURCES["אחר"].color
-                  }
-                />
-                <SelectField
-                  label="סוג האירוע"
-                  value={formData.eventType || "אחר"}
-                  onChange={(v) => setFormData({ ...formData, eventType: v })}
-                  options={Object.keys(EVENT_TYPES).map((s) => ({
-                    val: s,
-                    label: s,
-                  }))}
-                  dynamicClass={EVENT_TYPES[formData.eventType || "אחר"]?.color}
-                />
-                <InputField
-                  label="הצעה (₪)"
-                  type="number"
-                  value={formData.quote}
-                  onChange={(v) => setFormData({ ...formData, quote: v })}
-                />
-              </div>
-            </div>
-
-            {/* Demographics */}
-            <div className="space-y-3 lg:space-y-4">
-              <SectionTitle icon={<MapPin size={14} />} title="פרטים" />
-              <div className="space-y-3">
-                <InputField
-                  label="עיר"
-                  value={formData.city}
-                  onChange={(v) => setFormData({ ...formData, city: v })}
-                />
-                <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+              {/* Contact */}
+              <div className="space-y-3 lg:space-y-4">
+                <SectionTitle icon={<User size={14} />} title="פרטי קשר" />
+                <div className="space-y-3">
                   <InputField
-                    label="גיל"
-                    value={formData.age}
-                    onChange={(v) => setFormData({ ...formData, age: v })}
+                    label="שם *"
+                    value={formData.name}
+                    onChange={(v) => setFormData({ ...formData, name: v })}
+                    placeholder="שם מלא"
                   />
                   <InputField
-                    label="מקצוע"
-                    value={formData.job}
-                    onChange={(v) => setFormData({ ...formData, job: v })}
+                    label="טלפון *"
+                    value={formData.phone}
+                    onChange={(v) => setFormData({ ...formData, phone: v })}
+                    placeholder="05XXXXXXXX"
+                  />
+                  <InputField
+                    label="מייל"
+                    value={formData.email}
+                    onChange={(v) => setFormData({ ...formData, email: v })}
+                    placeholder="email@example.com"
+                    icon={<AtSign size={14} />}
                   />
                 </div>
-                <InputField
-                  label="תאריך רישום"
-                  type="date"
-                  value={formData.regDate}
-                  onChange={(v) => setFormData({ ...formData, regDate: v })}
+              </div>
+
+              {/* Status */}
+              <div className="space-y-3 lg:space-y-4">
+                <SectionTitle
+                  icon={<MessageCircle size={14} />}
+                  title="סטטוס"
                 />
+                <div className="space-y-3">
+                  <SelectField
+                    label="סטטוס"
+                    value={formData.status}
+                    onChange={(v) => setFormData({ ...formData, status: v })}
+                    options={Object.entries(STATUSES).map(([k, v]) => ({
+                      val: k,
+                      label: v.label,
+                    }))}
+                    dynamicClass={STATUSES[formData.status]?.color}
+                  />
+                  <SelectField
+                    label="מקור"
+                    value={formData.source}
+                    onChange={(v) => setFormData({ ...formData, source: v })}
+                    options={Object.keys(SOURCES).map((s) => ({
+                      val: s,
+                      label: s,
+                    }))}
+                    dynamicClass={
+                      SOURCES[formData.source]?.color || SOURCES["אחר"].color
+                    }
+                  />
+                  <SelectField
+                    label="סוג האירוע"
+                    value={formData.eventType || "אחר"}
+                    onChange={(v) => setFormData({ ...formData, eventType: v })}
+                    options={Object.keys(EVENT_TYPES).map((s) => ({
+                      val: s,
+                      label: s,
+                    }))}
+                    dynamicClass={
+                      EVENT_TYPES[formData.eventType || "אחר"]?.color
+                    }
+                  />
+                  <InputField
+                    label="הצעה (₪)"
+                    type="number"
+                    value={formData.quote}
+                    onChange={(v) => setFormData({ ...formData, quote: v })}
+                  />
+                </div>
+              </div>
+
+              {/* Demographics */}
+              <div className="space-y-3 lg:space-y-4">
+                <SectionTitle icon={<MapPin size={14} />} title="פרטים" />
+                <div className="space-y-3">
+                  <InputField
+                    label="עיר"
+                    value={formData.city}
+                    onChange={(v) => setFormData({ ...formData, city: v })}
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <InputField
+                      label="גיל"
+                      value={formData.age}
+                      onChange={(v) => setFormData({ ...formData, age: v })}
+                    />
+                    <InputField
+                      label="מקצוע"
+                      value={formData.job}
+                      onChange={(v) => setFormData({ ...formData, job: v })}
+                    />
+                  </div>
+                  <InputField
+                    label="תאריך רישום"
+                    type="date"
+                    value={formData.regDate}
+                    onChange={(v) => setFormData({ ...formData, regDate: v })}
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Dates and Notes */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 pt-4 lg:pt-6 border-t border-slate-50">
-            <div className="space-y-3">
-              <SectionTitle icon={<CalendarIcon size={14} />} title="תאריכים" />
-              <div className="grid grid-cols-2 gap-3">
-                <InputField
-                  label="שיחה חוזרת"
-                  type="date"
-                  value={formData.nextCallDate}
-                  onChange={(v) =>
-                    setFormData({ ...formData, nextCallDate: v })
+            {/* Dates and Notes */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 pt-4 lg:pt-6 border-t border-slate-50">
+              <div className="space-y-3">
+                <SectionTitle
+                  icon={<CalendarIcon size={14} />}
+                  title="תאריכים"
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <InputField
+                    label="שיחה חוזרת"
+                    type="date"
+                    value={formData.nextCallDate}
+                    onChange={(v) =>
+                      setFormData({ ...formData, nextCallDate: v })
+                    }
+                  />
+                  <InputField
+                    label="אירוע ראשון"
+                    type="date"
+                    value={formData.eventDate}
+                    onChange={(v) => setFormData({ ...formData, eventDate: v })}
+                  />
+                </div>
+
+                {/* 🎂 אירוע 2 - רק למי שבאפס למקצוענית + נסגר */}
+                {formData.eventType === "מאפס למקצוענית" &&
+                  formData.status === 3 && (
+                    <div className="pt-2">
+                      <InputField
+                        label="🎂 אירוע שני (מפגש 2)"
+                        type="date"
+                        value={formData.event2Date}
+                        onChange={(v) =>
+                          setFormData({ ...formData, event2Date: v })
+                        }
+                      />
+                    </div>
+                  )}
+              </div>
+              <div className="space-y-3">
+                <SectionTitle
+                  icon={<MessageCircle size={14} />}
+                  title="הערות"
+                />
+                <textarea
+                  className="w-full p-3 lg:p-4 bg-slate-50 border-none rounded-xl lg:rounded-2xl outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[80px] lg:min-h-[100px] resize-none"
+                  placeholder="סיכום..."
+                  value={formData.callDetails || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, callDetails: e.target.value })
                   }
                 />
-                <InputField
-                  label="אירוע"
-                  type="date"
-                  value={formData.eventDate}
-                  onChange={(v) => setFormData({ ...formData, eventDate: v })}
-                />
               </div>
-            </div>
-            <div className="space-y-3">
-              <SectionTitle icon={<MessageCircle size={14} />} title="הערות" />
-              <textarea
-                className="w-full p-3 lg:p-4 bg-slate-50 border-none rounded-xl lg:rounded-2xl outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[80px] lg:min-h-[100px] resize-none"
-                placeholder="סיכום..."
-                value={formData.callDetails || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, callDetails: e.target.value })
-                }
-              />
             </div>
           </div>
         </div>
