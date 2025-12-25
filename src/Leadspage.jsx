@@ -16,6 +16,7 @@ import {
   MessageCircle,
   MapPin,
   Calendar,
+  Info,
   Calendar as CalendarIcon,
 } from "lucide-react";
 import { useAppContext, STATUSES, SOURCES, EVENT_TYPES } from "./App";
@@ -519,8 +520,20 @@ export default function LeadsPage() {
                     />
                   </td>
                   <td className="p-5">
-                    <div className="font-black text-slate-800 text-base">
-                      {lead.name || "ללא שם"}
+                    <div className="flex items-center gap-2">
+                      <div className="font-black text-slate-800 text-base">
+                        {lead.name || "ללא שם"}
+                      </div>
+                      <button
+                        onClick={() => {
+                          setEditingLead(lead);
+                          setIsModalOpen(true);
+                        }}
+                        className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors active:scale-95 flex-shrink-0"
+                        title="מידע מלא"
+                      >
+                        <Info size={16} />
+                      </button>
                     </div>
                   </td>
                   <td className="p-5">
@@ -673,9 +686,18 @@ const MobileLeadCard = ({
     {/* Header */}
     <div className="flex items-start justify-between mb-3">
       <div className="flex-1 min-w-0">
-        <h3 className="font-black text-slate-800 text-lg mb-1.5 truncate">
-          {lead.name || "ללא שם"}
-        </h3>
+        <div className="flex items-center gap-2 mb-1.5">
+          <h3 className="font-black text-slate-800 text-lg truncate flex-1">
+            {lead.name || "ללא שם"}
+          </h3>
+          <button
+            onClick={onEdit}
+            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors active:scale-95 flex-shrink-0"
+            title="מידע מלא"
+          >
+            <Info size={18} />
+          </button>
+        </div>
         <div className="flex items-center gap-2 flex-wrap">
           <StatusDropdown
             lead={lead}
