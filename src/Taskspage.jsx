@@ -898,13 +898,13 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end lg:items-center justify-center p-0 lg:p-4">
-      <div className="bg-white w-full lg:max-w-4xl h-[95vh] lg:max-h-[90vh] rounded-t-[2rem] lg:rounded-[2.5rem] shadow-2xl flex flex-col animate-in slide-in-from-bottom lg:zoom-in duration-200">
-        {/* Sticky Header */}
-        <div className="flex-shrink-0 bg-white px-4 lg:px-8 py-4 lg:py-6 border-b border-slate-50 flex justify-between items-center z-20 gap-3">
+      <div className="bg-white w-full lg:max-w-5xl h-[95vh] lg:max-h-[90vh] rounded-t-[2rem] lg:rounded-[2.5rem] shadow-2xl flex flex-col animate-in slide-in-from-bottom lg:zoom-in duration-200">
+        {/* Header */}
+        <div className="flex-shrink-0 bg-gradient-to-r from-pink-50 to-purple-50 px-4 lg:px-8 py-4 lg:py-6 border-b border-slate-100 flex justify-between items-center gap-3">
           <div className="flex items-center gap-2 lg:gap-4 flex-1 min-w-0">
             <button
               onClick={onClose}
-              className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 transition-all flex-shrink-0"
+              className="p-2 hover:bg-white/50 rounded-xl text-slate-400 transition-all flex-shrink-0"
             >
               <X size={20} className="lg:hidden" />
               <X size={24} className="hidden lg:block" />
@@ -914,7 +914,7 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
                 עריכת {formData.name || "משימה"}
               </h3>
               <p className="text-[10px] lg:text-xs font-bold text-slate-400 italic">
-                עדכון מהיר
+                עדכון מהיר • SHIRSHIZ CRM
               </p>
             </div>
           </div>
@@ -926,104 +926,122 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
           </button>
         </div>
 
-        {/* Form Content */}
+        {/* Form Content - Scrollable */}
         <div className="overflow-y-auto flex-1">
           <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 pb-24">
-            {/* Contact Info */}
-            <div className="space-y-3 lg:space-y-4">
-              <SectionTitle icon={<User size={14} />} title="פרטי קשר" />
-              <div className="space-y-3">
-                <InputField
-                  label="שם הלקוחה *"
-                  value={formData.name}
-                  onChange={(v) => setFormData({ ...formData, name: v })}
-                  placeholder="שם מלא"
-                />
-                <InputField
-                  label="טלפון *"
-                  value={formData.phone}
-                  onChange={(v) => setFormData({ ...formData, phone: v })}
-                  placeholder="05XXXXXXXX"
-                />
-                <InputField
-                  label="מייל"
-                  value={formData.email}
-                  onChange={(v) => setFormData({ ...formData, email: v })}
-                  placeholder="email@example.com"
-                  icon={<AtSign size={14} />}
-                />
-              </div>
-            </div>
-
-            {/* Status */}
-            <div className="space-y-3 lg:space-y-4">
-              <SectionTitle
-                icon={<MessageCircle size={14} />}
-                title="סטטוס והצעה"
-              />
-              <div className="space-y-3">
-                <SelectField
-                  label="סטטוס"
-                  value={formData.status}
-                  onChange={(v) => setFormData({ ...formData, status: v })}
-                  options={Object.entries(STATUSES).map(([k, v]) => ({
-                    val: k,
-                    label: v.label,
-                  }))}
-                  dynamicClass={STATUSES[formData.status]?.color}
-                />
-                <SelectField
-                  label="מקור"
-                  value={formData.source}
-                  onChange={(v) => setFormData({ ...formData, source: v })}
-                  options={Object.keys(SOURCES).map((s) => ({
-                    val: s,
-                    label: s,
-                  }))}
-                  dynamicClass={
-                    SOURCES[formData.source]?.color || SOURCES["אחר"].color
-                  }
-                />
-                <InputField
-                  label="הצעה (₪)"
-                  type="number"
-                  value={formData.quote}
-                  onChange={(v) => setFormData({ ...formData, quote: v })}
-                />
-              </div>
-            </div>
-
-            {/* Demographics */}
-            <div className="space-y-3 lg:space-y-4">
-              <SectionTitle icon={<MapPin size={14} />} title="פרטים נוספים" />
-              <div className="space-y-3">
-                <InputField
-                  label="עיר"
-                  value={formData.city}
-                  onChange={(v) => setFormData({ ...formData, city: v })}
-                />
-                <div className="grid grid-cols-2 gap-2">
+            {/* 3 Columns Layout - Desktop */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+              {/* Column 1: Contact Info */}
+              <div className="space-y-3 lg:space-y-4">
+                <SectionTitle icon={<User size={14} />} title="פרטי קשר" />
+                <div className="space-y-3">
                   <InputField
-                    label="גיל"
-                    value={formData.age}
-                    onChange={(v) => setFormData({ ...formData, age: v })}
+                    label="שם *"
+                    value={formData.name}
+                    onChange={(v) => setFormData({ ...formData, name: v })}
+                    placeholder="שם מלא"
                   />
                   <InputField
-                    label="מקצוע"
-                    value={formData.job}
-                    onChange={(v) => setFormData({ ...formData, job: v })}
+                    label="טלפון *"
+                    value={formData.phone}
+                    onChange={(v) => setFormData({ ...formData, phone: v })}
+                    placeholder="05XXXXXXXX"
+                  />
+                  <InputField
+                    label="מייל"
+                    value={formData.email}
+                    onChange={(v) => setFormData({ ...formData, email: v })}
+                    placeholder="email@example.com"
+                    icon={<AtSign size={14} />}
                   />
                 </div>
-                <InputField
-                  label="תאריך רישום"
-                  type="date"
-                  value={formData.regDate}
-                  onChange={(v) => setFormData({ ...formData, regDate: v })}
+              </div>
+
+              {/* Column 2: Status & Quote */}
+              <div className="space-y-3 lg:space-y-4">
+                <SectionTitle
+                  icon={<MessageCircle size={14} />}
+                  title="סטטוס"
                 />
+                <div className="space-y-3">
+                  <SelectField
+                    label="סטטוס"
+                    value={formData.status}
+                    onChange={(v) => setFormData({ ...formData, status: v })}
+                    options={Object.entries(STATUSES).map(([k, v]) => ({
+                      val: k,
+                      label: v.label,
+                    }))}
+                    dynamicClass={STATUSES[formData.status]?.color}
+                  />
+                  <SelectField
+                    label="מקור"
+                    value={formData.source}
+                    onChange={(v) => setFormData({ ...formData, source: v })}
+                    options={Object.keys(SOURCES).map((s) => ({
+                      val: s,
+                      label: s,
+                    }))}
+                    dynamicClass={
+                      SOURCES[formData.source]?.color || SOURCES["אחר"].color
+                    }
+                  />
+                  <SelectField
+                    label="סוג האירוע"
+                    value={formData.eventType || "אחר"}
+                    onChange={(v) => setFormData({ ...formData, eventType: v })}
+                    options={Object.keys(EVENT_TYPES).map((s) => ({
+                      val: s,
+                      label: s,
+                    }))}
+                    dynamicClass={
+                      EVENT_TYPES[formData.eventType || "אחר"]?.color
+                    }
+                  />
+                  <InputField
+                    label="הצעה (₪)"
+                    type="number"
+                    value={formData.quote}
+                    onChange={(v) => setFormData({ ...formData, quote: v })}
+                  />
+                </div>
+              </div>
+
+              {/* Column 3: Demographics */}
+              <div className="space-y-3 lg:space-y-4">
+                <SectionTitle
+                  icon={<MapPin size={14} />}
+                  title="פרטים נוספים"
+                />
+                <div className="space-y-3">
+                  <InputField
+                    label="עיר"
+                    value={formData.city}
+                    onChange={(v) => setFormData({ ...formData, city: v })}
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <InputField
+                      label="גיל"
+                      value={formData.age}
+                      onChange={(v) => setFormData({ ...formData, age: v })}
+                    />
+                    <InputField
+                      label="מקצוע"
+                      value={formData.job}
+                      onChange={(v) => setFormData({ ...formData, job: v })}
+                    />
+                  </div>
+                  <InputField
+                    label="תאריך רישום"
+                    type="date"
+                    value={formData.regDate}
+                    onChange={(v) => setFormData({ ...formData, regDate: v })}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Dates and Notes */}
+            {/* Dates and Notes - Full Width */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 pt-4 lg:pt-6 border-t border-slate-50">
               <div className="space-y-3">
                 <SectionTitle
