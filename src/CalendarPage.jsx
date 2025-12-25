@@ -3,6 +3,7 @@ import {
   Calendar as CalendarIcon,
   ChevronRight,
   ChevronLeft,
+  X,
 } from "lucide-react";
 import { useAppContext, STATUSES } from "./App";
 
@@ -343,8 +344,7 @@ export default function CalendarPage() {
   );
 }
 
-// Quick View Modal (Responsive)
-// Quick View Modal (Responsive)
+// Quick View Modal - Compact & Efficient
 const QuickViewModal = ({ lead, onClose, onUpdate }) => {
   const [formData, setFormData] = useState({
     ...lead,
@@ -353,6 +353,7 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
     quote: lead.quote || "",
     city: lead.city || "",
     status: lead.status || 1,
+    callDetails: lead.callDetails || "",
   });
 
   const handleSave = async () => {
@@ -363,28 +364,19 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
   const getEventType = () => {
     if (lead.type) {
       const style = {
-        שיחה: { type: "שיחה", emoji: "📞", color: "blue" },
-        "מאפס למקצוענית": {
-          type: "מאפס למקצוענית",
-          emoji: "🎓",
-          color: "pink",
-        },
-        "מאפס למקצוענית - מפגש 2": {
-          type: "מאפס למקצוענית - מפגש 2",
-          emoji: "🎂",
-          color: "purple",
-        },
-        "סדנת וינטאג'": { type: "סדנת וינטאג'", emoji: "🎂", color: "purple" },
-        אחר: { type: "אחר", emoji: "📦", color: "emerald" },
+        שיחה: { emoji: "📞", color: "blue" },
+        "מאפס למקצוענית": { emoji: "🎓", color: "pink" },
+        "מאפס למקצוענית - מפגש 2": { emoji: "🎂", color: "purple" },
+        "סדנת וינטאג'": { emoji: "🎂", color: "purple" },
+        אחר: { emoji: "📦", color: "emerald" },
       };
       return style[lead.type] || style["אחר"];
     }
-    return { type: "אחר", emoji: "📦", color: "emerald" };
+    return { emoji: "📦", color: "emerald" };
   };
 
   const eventInfo = getEventType();
   const isClosed = Number(lead.status) === 3;
-  const isActive = Number(lead.status) === 1 || Number(lead.status) === 2;
 
   return (
     <div
@@ -392,187 +384,220 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
       onClick={onClose}
     >
       <div
-        className="bg-white w-full lg:max-w-2xl max-h-[90vh] rounded-t-[2rem] lg:rounded-[2rem] shadow-2xl overflow-y-auto animate-in slide-in-from-bottom lg:zoom-in duration-200"
+        className="bg-white w-full lg:max-w-3xl max-h-[92vh] rounded-t-[2rem] lg:rounded-[2rem] shadow-2xl flex flex-col animate-in slide-in-from-bottom lg:zoom-in duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
+        {/* Header - Compact */}
         <div
-          className={`bg-${eventInfo.color}-50 p-4 lg:p-6 border-b border-${eventInfo.color}-100`}
+          className={`flex-shrink-0 bg-gradient-to-r from-${eventInfo.color}-50 to-${eventInfo.color}-100/50 px-4 lg:px-6 py-3 lg:py-4 border-b border-${eventInfo.color}-100`}
         >
-          <div className="flex justify-between items-start gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1 lg:mb-2">
-                <span className="text-xl lg:text-2xl flex-shrink-0">
-                  {eventInfo.emoji}
-                </span>
-                <h3 className="text-lg lg:text-2xl font-black text-slate-800 truncate">
+          <div className="flex justify-between items-center gap-3">
+            <div className="flex items-center gap-2 lg:gap-3 flex-1 min-w-0">
+              <span className="text-xl lg:text-2xl flex-shrink-0">
+                {eventInfo.emoji}
+              </span>
+              <div className="min-w-0">
+                <h3 className="text-base lg:text-xl font-black text-slate-800 truncate">
                   {lead.name}
                 </h3>
+                <p
+                  className={`text-[10px] lg:text-xs font-bold text-${eventInfo.color}-600`}
+                >
+                  {lead.event2Date || lead.eventDate || lead.nextCallDate}
+                </p>
               </div>
-              <p
-                className={`text-xs lg:text-sm font-bold text-${eventInfo.color}-600`}
-              >
-                {eventInfo.type} •{" "}
-                {lead.event2Date || lead.eventDate || lead.nextCallDate}
-              </p>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/50 rounded-xl text-slate-400 transition-all flex-shrink-0"
+              className="p-1.5 lg:p-2 hover:bg-white/50 rounded-lg text-slate-400 transition-all flex-shrink-0"
             >
-              ✕
+              <X size={20} />
             </button>
           </div>
         </div>
 
-        {/* Body */}
-        <div className="p-4 lg:p-6 space-y-4 lg:space-y-5">
-          {/* Contact Info - תמיד מוצג */}
-          <div className="grid grid-cols-2 gap-3 lg:gap-4">
-            <div className="bg-slate-50 p-3 lg:p-4 rounded-xl">
-              <div className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase mb-1">
-                טלפון
-              </div>
-              <div className="font-black text-slate-800 text-sm lg:text-base">
-                {lead.phone}
-              </div>
-            </div>
-            <div className="bg-slate-50 p-3 lg:p-4 rounded-xl">
-              <div className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase mb-1">
-                עיר
-              </div>
-              <div className="font-black text-slate-800 text-sm lg:text-base">
-                {lead.city || "לא צוין"}
-              </div>
-            </div>
-          </div>
-
-          {/* ליד נסגר - רק שינוי תאריך */}
-          {isClosed && (
-            <div className="space-y-3">
-              <div className="text-xs font-black text-slate-500 mb-2 px-1">
-                שינוי תאריך אירוע
-              </div>
-              <input
-                type="date"
-                className="w-full p-3 lg:p-4 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
-                value={formData.eventDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, eventDate: e.target.value })
-                }
-              />
-            </div>
-          )}
-
-          {/* ליד פעיל - עריכה מהירה */}
-          {isActive && (
-            <>
-              {/* סטטוס */}
-              <div className="space-y-2">
-                <div className="text-xs font-black text-slate-500 mb-2 px-1">
-                  סטטוס
+        {/* Body - Scrollable */}
+        <div className="overflow-y-auto flex-1">
+          <div className="p-4 lg:p-6 space-y-4 pb-24">
+            {/* Contact Info - Always visible */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-slate-50 p-3 rounded-xl">
+                <div className="text-[9px] font-black text-slate-400 uppercase mb-1">
+                  טלפון
                 </div>
-                <div className="p-0.5 rounded-xl border-2 transition-all bg-slate-50">
-                  <select
-                    className={`w-full p-3 bg-transparent font-black outline-none cursor-pointer text-sm ${
-                      STATUSES[formData.status]?.color || ""
-                    }`}
-                    value={formData.status}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        status: Number(e.target.value),
-                      })
-                    }
-                  >
-                    {Object.entries(STATUSES).map(([k, v]) => (
-                      <option
-                        key={k}
-                        value={k}
-                        className="bg-white text-slate-800"
-                      >
-                        {v.label}
-                      </option>
-                    ))}
-                  </select>
+                <div className="font-black text-slate-800 text-sm">
+                  {lead.phone}
                 </div>
               </div>
-
-              {/* הצעת מחיר */}
-              <div className="space-y-2">
-                <div className="text-xs font-black text-slate-500 mb-2 px-1">
-                  הצעת מחיר (₪)
-                </div>
-                <input
-                  type="number"
-                  className="w-full p-3 lg:p-4 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
-                  value={formData.quote}
-                  onChange={(e) =>
-                    setFormData({ ...formData, quote: e.target.value })
-                  }
-                  placeholder="0"
-                />
-              </div>
-
-              {/* עיר */}
-              <div className="space-y-2">
-                <div className="text-xs font-black text-slate-500 mb-2 px-1">
+              <div className="bg-slate-50 p-3 rounded-xl">
+                <div className="text-[9px] font-black text-slate-400 uppercase mb-1">
                   עיר
                 </div>
-                <input
-                  type="text"
-                  className="w-full p-3 lg:p-4 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
-                  value={formData.city}
-                  onChange={(e) =>
-                    setFormData({ ...formData, city: e.target.value })
-                  }
-                  placeholder="עיר"
-                />
-              </div>
-
-              {/* שיחה עתידית */}
-              <div className="space-y-2">
-                <div className="text-xs font-black text-slate-500 mb-2 px-1">
-                  שיחה חוזרת
+                <div className="font-black text-slate-800 text-sm">
+                  {formData.city || "לא צוין"}
                 </div>
+              </div>
+            </div>
+
+            {/* Closed Lead - Date Only */}
+            {isClosed && (
+              <div>
+                <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                  שינוי תאריך אירוע
+                </label>
                 <input
                   type="date"
-                  className="w-full p-3 lg:p-4 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
-                  value={formData.nextCallDate}
+                  className="w-full p-3 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                  value={formData.eventDate}
                   onChange={(e) =>
-                    setFormData({ ...formData, nextCallDate: e.target.value })
+                    setFormData({ ...formData, eventDate: e.target.value })
                   }
                 />
               </div>
-            </>
-          )}
+            )}
 
-          {/* הערות לשיחה - תמיד */}
-          <div>
-            <div className="text-xs font-black text-slate-500 mb-2 px-1">
-              הערות לשיחה
-            </div>
-            <textarea
-              className="w-full p-3 lg:p-4 bg-slate-50 border-none rounded-xl outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[100px] lg:min-h-[120px] resize-none"
-              placeholder="הוסיפי הערות..."
-              value={formData.callDetails || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, callDetails: e.target.value })
-              }
-            />
+            {/* Active Lead - 2 Columns Layout */}
+            {!isClosed && (
+              <>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
+                  {/* Column 1 */}
+                  <div className="space-y-3">
+                    {/* Status */}
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                        סטטוס
+                      </label>
+                      <div
+                        className={`p-0.5 rounded-xl border-2 ${
+                          STATUSES[formData.status]?.color || "bg-slate-50"
+                        }`}
+                      >
+                        <select
+                          className="w-full p-2.5 bg-transparent font-black outline-none cursor-pointer text-sm"
+                          value={formData.status}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              status: Number(e.target.value),
+                            })
+                          }
+                        >
+                          {Object.entries(STATUSES).map(([k, v]) => (
+                            <option
+                              key={k}
+                              value={k}
+                              className="bg-white text-slate-800"
+                            >
+                              {v.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Quote */}
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                        הצעת מחיר (₪)
+                      </label>
+                      <input
+                        type="number"
+                        className="w-full p-3 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                        value={formData.quote}
+                        onChange={(e) =>
+                          setFormData({ ...formData, quote: e.target.value })
+                        }
+                        placeholder="990"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Column 2 */}
+                  <div className="space-y-3">
+                    {/* City */}
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                        עיר
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full p-3 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                        value={formData.city}
+                        onChange={(e) =>
+                          setFormData({ ...formData, city: e.target.value })
+                        }
+                        placeholder="רמת גן"
+                      />
+                    </div>
+
+                    {/* Next Call Date */}
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                        שיחה חוזרת
+                      </label>
+                      <input
+                        type="date"
+                        className="w-full p-3 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                        value={formData.nextCallDate}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            nextCallDate: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes - Full Width */}
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                    הערות לשיחה
+                  </label>
+                  <textarea
+                    className="w-full p-3 bg-slate-50 border-none rounded-xl outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[100px] resize-none"
+                    placeholder="הוסיפי הערות מהשיחה..."
+                    value={formData.callDetails}
+                    onChange={(e) =>
+                      setFormData({ ...formData, callDetails: e.target.value })
+                    }
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Notes for Closed Leads */}
+            {isClosed && (
+              <div>
+                <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                  הערות
+                </label>
+                <textarea
+                  className="w-full p-3 bg-slate-50 border-none rounded-xl outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[80px] resize-none"
+                  placeholder="הערות..."
+                  value={formData.callDetails}
+                  onChange={(e) =>
+                    setFormData({ ...formData, callDetails: e.target.value })
+                  }
+                />
+              </div>
+            )}
           </div>
+        </div>
 
-          {/* Actions */}
-          <div className="flex gap-2 lg:gap-3 pt-2 lg:pt-4">
+        {/* Footer - Sticky */}
+        <div className="flex-shrink-0 p-4 lg:p-6 border-t border-slate-100 bg-white">
+          <div className="flex gap-3">
             <button
               onClick={handleSave}
-              className="flex-1 bg-pink-600 text-white py-3 lg:py-4 rounded-xl font-black hover:bg-pink-700 transition-all active:scale-95 text-sm lg:text-base"
+              className="flex-1 bg-pink-600 text-white py-3 rounded-xl font-black hover:bg-pink-700 transition-all active:scale-95 text-sm lg:text-base"
             >
               שמירה
             </button>
             <button
               onClick={onClose}
-              className="flex-1 bg-slate-100 text-slate-600 py-3 lg:py-4 rounded-xl font-bold hover:bg-slate-200 transition-all active:scale-95 text-sm lg:text-base"
+              className="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-200 transition-all active:scale-95 text-sm lg:text-base"
             >
               סגירה
             </button>
