@@ -5,7 +5,7 @@ import {
   ChevronLeft,
   X,
 } from "lucide-react";
-import { useAppContext, STATUSES } from "./App";
+import { useAppContext, STATUSES, EVENT_TYPES } from "./App";
 
 export default function CalendarPage() {
   const { leads, updateLead } = useAppContext();
@@ -350,6 +350,8 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
     ...lead,
     nextCallDate: lead.nextCallDate || "",
     eventDate: lead.eventDate || "",
+    event2Date: lead.event2Date || "",
+    eventType: lead.eventType || "אחר",
     quote: lead.quote || "",
     city: lead.city || "",
     status: lead.status || 1,
@@ -439,20 +441,99 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
               </div>
             </div>
 
-            {/* Closed Lead - Date Only */}
+            {/* Closed Lead - Event Type, Quote & Dates */}
             {isClosed && (
-              <div>
-                <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
-                  שינוי תאריך אירוע
-                </label>
-                <input
-                  type="date"
-                  className="w-full p-3 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
-                  value={formData.eventDate}
-                  onChange={(e) =>
-                    setFormData({ ...formData, eventDate: e.target.value })
-                  }
-                />
+              <div className="space-y-3">
+                {/* Event Type & Quote - 2 Columns */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  {/* Event Type */}
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                      סוג האירוע
+                    </label>
+                    <div
+                      className={`p-0.5 rounded-xl border-2 ${
+                        EVENT_TYPES[formData.eventType || "אחר"]?.color ||
+                        "bg-slate-50"
+                      }`}
+                    >
+                      <select
+                        className="w-full p-2.5 bg-transparent font-black outline-none cursor-pointer text-sm"
+                        value={formData.eventType || "אחר"}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            eventType: e.target.value,
+                          })
+                        }
+                      >
+                        {Object.keys(EVENT_TYPES).map((type) => (
+                          <option
+                            key={type}
+                            value={type}
+                            className="bg-white text-slate-800"
+                          >
+                            {type}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Quote */}
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                      הצעת מחיר (₪)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full p-3 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                      value={formData.quote}
+                      onChange={(e) =>
+                        setFormData({ ...formData, quote: e.target.value })
+                      }
+                      placeholder="990"
+                    />
+                  </div>
+                </div>
+
+                {/* Event Dates */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  {/* Event Date 1 */}
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                      אירוע ראשון
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full p-3 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                      value={formData.eventDate}
+                      onChange={(e) =>
+                        setFormData({ ...formData, eventDate: e.target.value })
+                      }
+                    />
+                  </div>
+
+                  {/* Event Date 2 - Only for מאפס למקצוענית */}
+                  {formData.eventType === "מאפס למקצוענית" && (
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                        🎂 אירוע שני (מפגש 2)
+                      </label>
+                      <input
+                        type="date"
+                        className="w-full p-3 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                        value={formData.event2Date}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            event2Date: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
