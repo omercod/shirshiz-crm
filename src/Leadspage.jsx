@@ -1088,20 +1088,19 @@ const LeadModal = ({ lead, onSave, onClose, error }) => {
                   />
                 </div>
 
-                {/* 🎂 אירוע 2 - רק למי שבאפס למקצוענית + נסגר */}
-                {formData.eventType === "מאפס למקצוענית" &&
-                  formData.status === 3 && (
-                    <div className="pt-2">
-                      <InputField
-                        label="🎂 אירוע שני (מפגש 2)"
-                        type="date"
-                        value={formData.event2Date}
-                        onChange={(v) =>
-                          setFormData({ ...formData, event2Date: v })
-                        }
-                      />
-                    </div>
-                  )}
+                {/* 🎂 אירוע 2 - רק למי שבאפס למקצוענית */}
+                {formData.eventType === "מאפס למקצוענית" && (
+                  <div className="pt-2">
+                    <InputField
+                      label="🎂 אירוע שני (מפגש 2)"
+                      type="date"
+                      value={formData.event2Date}
+                      onChange={(v) =>
+                        setFormData({ ...formData, event2Date: v })
+                      }
+                    />
+                  </div>
+                )}
               </div>
               <div className="space-y-3">
                 <SectionTitle

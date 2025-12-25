@@ -1000,39 +1000,45 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
                 />
               </div>
             </div>
-          </div>
 
-          {/* Dates and Notes */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 pt-4 lg:pt-6 border-t border-slate-50">
-            <div className="space-y-3">
-              <SectionTitle icon={<CalendarIcon size={14} />} title="תאריכים" />
-              <div className="grid grid-cols-2 gap-3">
-                <InputField
-                  label="שיחה חוזרת"
-                  type="date"
-                  value={formData.nextCallDate}
-                  onChange={(v) =>
-                    setFormData({ ...formData, nextCallDate: v })
+            {/* Dates and Notes */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 pt-4 lg:pt-6 border-t border-slate-50">
+              <div className="space-y-3">
+                <SectionTitle
+                  icon={<CalendarIcon size={14} />}
+                  title="תאריכים"
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <InputField
+                    label="שיחה חוזרת"
+                    type="date"
+                    value={formData.nextCallDate}
+                    onChange={(v) =>
+                      setFormData({ ...formData, nextCallDate: v })
+                    }
+                  />
+                  <InputField
+                    label="אירוע"
+                    type="date"
+                    value={formData.eventDate}
+                    onChange={(v) => setFormData({ ...formData, eventDate: v })}
+                  />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <SectionTitle
+                  icon={<MessageCircle size={14} />}
+                  title="הערות"
+                />
+                <textarea
+                  className="w-full p-3 lg:p-4 bg-slate-50 border-none rounded-xl lg:rounded-2xl outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[80px] lg:min-h-[100px] resize-none"
+                  placeholder="סיכום שיחה..."
+                  value={formData.callDetails || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, callDetails: e.target.value })
                   }
                 />
-                <InputField
-                  label="אירוע"
-                  type="date"
-                  value={formData.eventDate}
-                  onChange={(v) => setFormData({ ...formData, eventDate: v })}
-                />
               </div>
-            </div>
-            <div className="space-y-3">
-              <SectionTitle icon={<MessageCircle size={14} />} title="הערות" />
-              <textarea
-                className="w-full p-3 lg:p-4 bg-slate-50 border-none rounded-xl lg:rounded-2xl outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[80px] lg:min-h-[100px] resize-none"
-                placeholder="סיכום שיחה..."
-                value={formData.callDetails || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, callDetails: e.target.value })
-                }
-              />
             </div>
           </div>
         </div>
