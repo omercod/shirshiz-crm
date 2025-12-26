@@ -57,39 +57,20 @@ export default function StatsPage() {
       .reduce((acc, curr) => acc + Number(curr.quote || 0), 0);
     const avgDealSize = closed > 0 ? Math.round(totalRevenue / closed) : 0;
 
-    // 💰 חישוב מחזור (Revenue) - לפי תאריך תשלום ראשון + טווח זמן מסונן
+    // 💰 חישוב מחזור (Revenue) - לפי תאריך תשלום ראשון
+    // פונקציה עוזרת - תאריך מקומי
+    const getLocalDateString = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
     const calculateRevenue = () => {
       let revenue = 0;
-
-      // פונקציה לבדיקה אם תאריך בטווח המסונן
-      const isDateInRange = (dateStr) => {
-        if (statsTimeFilter === "all") return true;
-
-        const checkDate = new Date(dateStr);
-
-        if (statsTimeFilter === "day") {
-          const today = new Date().toISOString().split("T")[0];
-          return dateStr === today;
-        }
-
-        if (statsTimeFilter === "custom") {
-          if (customDateRange.from && customDateRange.to) {
-            const fromDate = new Date(customDateRange.from);
-            const toDate = new Date(customDateRange.to);
-            toDate.setHours(23, 59, 59, 999);
-            return checkDate >= fromDate && checkDate <= toDate;
-          }
-          return false;
-        }
-
-        const limit = new Date();
-        if (statsTimeFilter === "week") limit.setDate(now.getDate() - 7);
-        if (statsTimeFilter === "month") limit.setMonth(now.getMonth() - 1);
-        if (statsTimeFilter === "year")
-          limit.setFullYear(now.getFullYear() - 1);
-
-        return checkDate >= limit;
-      };
+      const today = new Date();
+      const todayStr = getLocalDateString(today);
+      today.setHours(0, 0, 0, 0);
 
       leads.forEach((lead) => {
         if (lead.payments && lead.payments.length > 0) {
@@ -98,11 +79,47 @@ export default function StatsPage() {
             (a, b) => new Date(a.date) - new Date(b.date)
           );
 
-          const firstPaymentDate = sortedPayments[0].date;
+          const firstPaymentDate = new Date(sortedPayments[0].date);
+          firstPaymentDate.setHours(0, 0, 0, 0);
 
           // בדיקה אם התשלום הראשון בטווח הזמן המסונן
-          if (isDateInRange(firstPaymentDate)) {
-            // סכום כל התשלומים
+          let isInRange = false;
+
+          if (statsTimeFilter === "all") {
+            isInRange = true;
+          } else if (statsTimeFilter === "day") {
+            isInRange = sortedPayments[0].date === todayStr;
+          } else if (statsTimeFilter === "custom") {
+            if (customDateRange.from && customDateRange.to) {
+              const fromDate = new Date(customDateRange.from);
+              fromDate.setHours(0, 0, 0, 0);
+              const toDate = new Date(customDateRange.to);
+              toDate.setHours(23, 59, 59, 999);
+              isInRange =
+                firstPaymentDate >= fromDate && firstPaymentDate <= toDate;
+            }
+          } else if (statsTimeFilter === "week") {
+            const weekAgo = new Date(today);
+            weekAgo.setDate(today.getDate() - 7);
+            weekAgo.setHours(0, 0, 0, 0);
+            isInRange =
+              firstPaymentDate >= weekAgo && firstPaymentDate <= today;
+          } else if (statsTimeFilter === "month") {
+            const monthAgo = new Date(today);
+            monthAgo.setMonth(today.getMonth() - 1);
+            monthAgo.setHours(0, 0, 0, 0);
+            isInRange =
+              firstPaymentDate >= monthAgo && firstPaymentDate <= today;
+          } else if (statsTimeFilter === "year") {
+            const yearAgo = new Date(today);
+            yearAgo.setFullYear(today.getFullYear() - 1);
+            yearAgo.setHours(0, 0, 0, 0);
+            isInRange =
+              firstPaymentDate >= yearAgo && firstPaymentDate <= today;
+          }
+
+          if (isInRange) {
+            // סכום כל התשלומים של העסקה
             const totalPayments = sortedPayments.reduce(
               (sum, p) => sum + (Number(p.amount) || 0),
               0
@@ -115,44 +132,51 @@ export default function StatsPage() {
       return revenue;
     };
 
-    // 💸 חישוב הכנסות בפועל (Cash Flow) - לפי תאריכי תשלום + טווח זמן מסונן
+    // 💸 חישוב הכנסות בפועל (Cash Flow) - לפי תאריכי תשלום
     const calculateCashFlow = () => {
       let cashFlow = 0;
-
-      // פונקציה לבדיקה אם תאריך בטווח המסונן
-      const isDateInRange = (dateStr) => {
-        if (statsTimeFilter === "all") return true;
-
-        const checkDate = new Date(dateStr);
-
-        if (statsTimeFilter === "day") {
-          const today = new Date().toISOString().split("T")[0];
-          return dateStr === today;
-        }
-
-        if (statsTimeFilter === "custom") {
-          if (customDateRange.from && customDateRange.to) {
-            const fromDate = new Date(customDateRange.from);
-            const toDate = new Date(customDateRange.to);
-            toDate.setHours(23, 59, 59, 999);
-            return checkDate >= fromDate && checkDate <= toDate;
-          }
-          return false;
-        }
-
-        const limit = new Date();
-        if (statsTimeFilter === "week") limit.setDate(now.getDate() - 7);
-        if (statsTimeFilter === "month") limit.setMonth(now.getMonth() - 1);
-        if (statsTimeFilter === "year")
-          limit.setFullYear(now.getFullYear() - 1);
-
-        return checkDate >= limit;
-      };
+      const today = new Date();
+      const todayStr = getLocalDateString(today);
+      today.setHours(0, 0, 0, 0);
 
       leads.forEach((lead) => {
         if (lead.payments && lead.payments.length > 0) {
           lead.payments.forEach((payment) => {
-            if (isDateInRange(payment.date)) {
+            const paymentDate = new Date(payment.date);
+            paymentDate.setHours(0, 0, 0, 0);
+
+            let isInRange = false;
+
+            if (statsTimeFilter === "all") {
+              isInRange = true;
+            } else if (statsTimeFilter === "day") {
+              isInRange = payment.date === todayStr;
+            } else if (statsTimeFilter === "custom") {
+              if (customDateRange.from && customDateRange.to) {
+                const fromDate = new Date(customDateRange.from);
+                fromDate.setHours(0, 0, 0, 0);
+                const toDate = new Date(customDateRange.to);
+                toDate.setHours(23, 59, 59, 999);
+                isInRange = paymentDate >= fromDate && paymentDate <= toDate;
+              }
+            } else if (statsTimeFilter === "week") {
+              const weekAgo = new Date(today);
+              weekAgo.setDate(today.getDate() - 7);
+              weekAgo.setHours(0, 0, 0, 0);
+              isInRange = paymentDate >= weekAgo && paymentDate <= today;
+            } else if (statsTimeFilter === "month") {
+              const monthAgo = new Date(today);
+              monthAgo.setMonth(today.getMonth() - 1);
+              monthAgo.setHours(0, 0, 0, 0);
+              isInRange = paymentDate >= monthAgo && paymentDate <= today;
+            } else if (statsTimeFilter === "year") {
+              const yearAgo = new Date(today);
+              yearAgo.setFullYear(today.getFullYear() - 1);
+              yearAgo.setHours(0, 0, 0, 0);
+              isInRange = paymentDate >= yearAgo && paymentDate <= today;
+            }
+
+            if (isInRange) {
               cashFlow += Number(payment.amount) || 0;
             }
           });
@@ -162,11 +186,11 @@ export default function StatsPage() {
       return cashFlow;
     };
 
-    // 📈 הכנסות עתידיות - תשלומים שעוד לא הגיעו (לא משתנה לפי פילטר)
+    // 📈 הכנסות עתידיות - תשלומים שעוד לא הגיעו
     const calculateFutureRevenue = () => {
       let futureRevenue = 0;
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      today.setHours(23, 59, 59, 999); // סוף היום
 
       leads.forEach((lead) => {
         if (lead.payments && lead.payments.length > 0) {
@@ -174,6 +198,7 @@ export default function StatsPage() {
             const paymentDate = new Date(payment.date);
             paymentDate.setHours(0, 0, 0, 0);
 
+            // רק תשלומים עתידיים
             if (paymentDate > today) {
               futureRevenue += Number(payment.amount) || 0;
             }
@@ -183,7 +208,6 @@ export default function StatsPage() {
 
       return futureRevenue;
     };
-
     const filteredRevenue = calculateRevenue();
     const filteredCashFlow = calculateCashFlow();
     const futureRevenue = calculateFutureRevenue();
