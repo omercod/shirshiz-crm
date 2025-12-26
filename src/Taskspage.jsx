@@ -18,6 +18,7 @@ import {
   Info,
 } from "lucide-react";
 import { useAppContext, STATUSES, SOURCES, EVENT_TYPES } from "./App";
+import PaymentsModal from "./PaymentsModal";
 
 const formatIsraeliDate = (dateStr) => {
   if (!dateStr) return "";
@@ -27,6 +28,10 @@ const formatIsraeliDate = (dateStr) => {
 
 export default function TasksPage() {
   const { leads, updateLead } = useAppContext();
+
+  const [isPaymentsModalOpen, setIsPaymentsModalOpen] = useState(false);
+  const [currentFormData, setCurrentFormData] = useState(null);
+  const [currentSetFormData, setCurrentSetFormData] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -587,6 +592,28 @@ export default function TasksPage() {
             setIsModalOpen(false);
             setEditingLead(null);
           }}
+          onOpenPayments={(formData, setFormData) => {
+            setCurrentFormData(formData);
+            setCurrentSetFormData(() => setFormData);
+            setIsPaymentsModalOpen(true);
+          }}
+        />
+      )}
+      {isPaymentsModalOpen && currentFormData && currentSetFormData && (
+        <PaymentsModal
+          totalAmount={currentFormData.quote}
+          payments={currentFormData.payments || []}
+          onSave={(payments) => {
+            currentSetFormData({ ...currentFormData, payments });
+            setIsPaymentsModalOpen(false);
+            setCurrentFormData(null);
+            setCurrentSetFormData(null);
+          }}
+          onClose={() => {
+            setIsPaymentsModalOpen(false);
+            setCurrentFormData(null);
+            setCurrentSetFormData(null);
+          }}
         />
       )}
     </div>
@@ -893,7 +920,7 @@ const SortIcon = ({ columnKey, config }) => {
 };
 
 // Quick Edit Modal Component (Responsive)
-const QuickEditModal = ({ lead, onSave, onClose }) => {
+const QuickEditModal = ({ lead, onSave, onClose, onOpenPayments }) => {
   const [formData, setFormData] = useState(lead);
 
   return (
@@ -1004,12 +1031,46 @@ const QuickEditModal = ({ lead, onSave, onClose }) => {
                       EVENT_TYPES[formData.eventType || "אחר"]?.color
                     }
                   />
-                  <InputField
-                    label="הצעה (₪)"
-                    type="number"
-                    value={formData.quote}
-                    onChange={(v) => setFormData({ ...formData, quote: v })}
-                  />
+                  {/* הצעה + כפתור תשלומים */}
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                      הצעה (₪)
+                    </label>
+                    <div className="flex gap-2">
+                      {/* שדה הצעה */}
+                      <div className="flex-1">
+                        <input
+                          type="number"
+                          placeholder="0"
+                          className="w-full p-3 lg:p-3.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm transition-all"
+                          value={formData.quote || ""}
+                          onChange={(e) =>
+                            setFormData({ ...formData, quote: e.target.value })
+                          }
+                        />
+                      </div>
+
+                      {/* כפתור תשלומים */}
+                      <button
+                        onClick={() => {
+                          if (!formData.quote || formData.quote <= 0) {
+                            alert("נא להזין הצעת מחיר תחילה");
+                            return;
+                          }
+                          onOpenPayments(formData, setFormData);
+                        }}
+                        className="px-4 py-3 bg-emerald-50 border-2 border-emerald-200 rounded-xl font-black text-emerald-700 hover:bg-emerald-100 transition-all active:scale-95 flex items-center gap-2 whitespace-nowrap"
+                        title="ניהול תשלומים"
+                      >
+                        💰
+                        {formData.payments && formData.payments.length > 0 && (
+                          <span className="bg-emerald-600 text-white px-1.5 py-0.5 rounded-full text-[10px] font-black">
+                            {formData.payments.length}
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 

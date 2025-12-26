@@ -57,6 +57,137 @@ export default function StatsPage() {
       .reduce((acc, curr) => acc + Number(curr.quote || 0), 0);
     const avgDealSize = closed > 0 ? Math.round(totalRevenue / closed) : 0;
 
+    // 💰 חישוב מחזור (Revenue) - לפי תאריך תשלום ראשון + טווח זמן מסונן
+    const calculateRevenue = () => {
+      let revenue = 0;
+
+      // פונקציה לבדיקה אם תאריך בטווח המסונן
+      const isDateInRange = (dateStr) => {
+        if (statsTimeFilter === "all") return true;
+
+        const checkDate = new Date(dateStr);
+
+        if (statsTimeFilter === "day") {
+          const today = new Date().toISOString().split("T")[0];
+          return dateStr === today;
+        }
+
+        if (statsTimeFilter === "custom") {
+          if (customDateRange.from && customDateRange.to) {
+            const fromDate = new Date(customDateRange.from);
+            const toDate = new Date(customDateRange.to);
+            toDate.setHours(23, 59, 59, 999);
+            return checkDate >= fromDate && checkDate <= toDate;
+          }
+          return false;
+        }
+
+        const limit = new Date();
+        if (statsTimeFilter === "week") limit.setDate(now.getDate() - 7);
+        if (statsTimeFilter === "month") limit.setMonth(now.getMonth() - 1);
+        if (statsTimeFilter === "year")
+          limit.setFullYear(now.getFullYear() - 1);
+
+        return checkDate >= limit;
+      };
+
+      leads.forEach((lead) => {
+        if (lead.payments && lead.payments.length > 0) {
+          // מיון תשלומים לפי תאריך
+          const sortedPayments = [...lead.payments].sort(
+            (a, b) => new Date(a.date) - new Date(b.date)
+          );
+
+          const firstPaymentDate = sortedPayments[0].date;
+
+          // בדיקה אם התשלום הראשון בטווח הזמן המסונן
+          if (isDateInRange(firstPaymentDate)) {
+            // סכום כל התשלומים
+            const totalPayments = sortedPayments.reduce(
+              (sum, p) => sum + (Number(p.amount) || 0),
+              0
+            );
+            revenue += totalPayments;
+          }
+        }
+      });
+
+      return revenue;
+    };
+
+    // 💸 חישוב הכנסות בפועל (Cash Flow) - לפי תאריכי תשלום + טווח זמן מסונן
+    const calculateCashFlow = () => {
+      let cashFlow = 0;
+
+      // פונקציה לבדיקה אם תאריך בטווח המסונן
+      const isDateInRange = (dateStr) => {
+        if (statsTimeFilter === "all") return true;
+
+        const checkDate = new Date(dateStr);
+
+        if (statsTimeFilter === "day") {
+          const today = new Date().toISOString().split("T")[0];
+          return dateStr === today;
+        }
+
+        if (statsTimeFilter === "custom") {
+          if (customDateRange.from && customDateRange.to) {
+            const fromDate = new Date(customDateRange.from);
+            const toDate = new Date(customDateRange.to);
+            toDate.setHours(23, 59, 59, 999);
+            return checkDate >= fromDate && checkDate <= toDate;
+          }
+          return false;
+        }
+
+        const limit = new Date();
+        if (statsTimeFilter === "week") limit.setDate(now.getDate() - 7);
+        if (statsTimeFilter === "month") limit.setMonth(now.getMonth() - 1);
+        if (statsTimeFilter === "year")
+          limit.setFullYear(now.getFullYear() - 1);
+
+        return checkDate >= limit;
+      };
+
+      leads.forEach((lead) => {
+        if (lead.payments && lead.payments.length > 0) {
+          lead.payments.forEach((payment) => {
+            if (isDateInRange(payment.date)) {
+              cashFlow += Number(payment.amount) || 0;
+            }
+          });
+        }
+      });
+
+      return cashFlow;
+    };
+
+    // 📈 הכנסות עתידיות - תשלומים שעוד לא הגיעו (לא משתנה לפי פילטר)
+    const calculateFutureRevenue = () => {
+      let futureRevenue = 0;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      leads.forEach((lead) => {
+        if (lead.payments && lead.payments.length > 0) {
+          lead.payments.forEach((payment) => {
+            const paymentDate = new Date(payment.date);
+            paymentDate.setHours(0, 0, 0, 0);
+
+            if (paymentDate > today) {
+              futureRevenue += Number(payment.amount) || 0;
+            }
+          });
+        }
+      });
+
+      return futureRevenue;
+    };
+
+    const filteredRevenue = calculateRevenue();
+    const filteredCashFlow = calculateCashFlow();
+    const futureRevenue = calculateFutureRevenue();
+
     const sourceData = {};
     filtered.forEach((l) => {
       sourceData[l.source] = (sourceData[l.source] || 0) + 1;
@@ -100,6 +231,9 @@ export default function StatsPage() {
       sourceData,
       statusData,
       monthlyData,
+      filteredRevenue,
+      filteredCashFlow,
+      futureRevenue,
     };
   }, [leads, statsTimeFilter, customDateRange]);
 
@@ -228,23 +362,25 @@ export default function StatsPage() {
           color="emerald"
         />
         <StatCard
-          icon={<DollarSign size={20} className="lg:hidden" />}
-          iconLarge={<DollarSign size={24} className="hidden lg:block" />}
-          title="הכנסות"
-          value={`₪${stats.totalRevenue.toLocaleString()}`}
-          color="pink"
-        />
-        <StatCard
           icon={<TrendingUp size={20} className="lg:hidden" />}
           iconLarge={<TrendingUp size={24} className="hidden lg:block" />}
-          title="עסקה ממוצעת"
-          value={`₪${stats.avgDealSize.toLocaleString()}`}
-          color="amber"
+          title="💼 מחזור"
+          value={`₪${stats.filteredRevenue.toLocaleString()}`}
+          color="purple"
+          subtitle="סך עסקאות"
+        />
+        <StatCard
+          icon={<DollarSign size={20} className="lg:hidden" />}
+          iconLarge={<DollarSign size={24} className="hidden lg:block" />}
+          title="💰 הכנסות"
+          value={`₪${stats.filteredCashFlow.toLocaleString()}`}
+          color="pink"
+          subtitle="כסף בפועל"
         />
       </div>
 
       {/* Additional Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
         <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] border border-emerald-200">
           <div className="text-xs lg:text-sm font-black text-emerald-600 mb-1 lg:mb-2">
             עסקאות שנסגרו
@@ -257,15 +393,27 @@ export default function StatsPage() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] border border-pink-200">
-          <div className="text-xs lg:text-sm font-black text-pink-600 mb-1 lg:mb-2">
-            הכנסות פוטנציאליות
+        <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] border border-amber-200">
+          <div className="text-xs lg:text-sm font-black text-amber-600 mb-1 lg:mb-2">
+            💸 הכנסות עתידיות
           </div>
-          <div className="text-2xl lg:text-4xl font-black text-pink-700">
-            ₪{stats.potentialRevenue.toLocaleString()}
+          <div className="text-2xl lg:text-4xl font-black text-amber-700">
+            ₪{stats.futureRevenue.toLocaleString()}
           </div>
-          <div className="text-[10px] lg:text-xs text-pink-600 font-bold mt-1 lg:mt-2">
-            {stats.inProgress} עסקאות בתהליך
+          <div className="text-[10px] lg:text-xs text-amber-600 font-bold mt-1 lg:mt-2">
+            תשלומים ממתינים
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] border border-blue-200">
+          <div className="text-xs lg:text-sm font-black text-blue-600 mb-1 lg:mb-2">
+            📊 עסקה ממוצעת
+          </div>
+          <div className="text-2xl lg:text-4xl font-black text-blue-700">
+            ₪{stats.avgDealSize.toLocaleString()}
+          </div>
+          <div className="text-[10px] lg:text-xs text-blue-600 font-bold mt-1 lg:mt-2">
+            לליד שנסגר
           </div>
         </div>
       </div>
@@ -436,6 +584,7 @@ const StatCard = ({ icon, iconLarge, title, value, color }) => {
     emerald: "bg-emerald-50 text-emerald-600 border-emerald-100",
     pink: "bg-pink-50 text-pink-600 border-pink-100",
     amber: "bg-amber-50 text-amber-600 border-amber-100",
+    purple: "bg-purple-50 text-purple-600 border-purple-100",
   };
 
   const textColors = {
@@ -443,6 +592,7 @@ const StatCard = ({ icon, iconLarge, title, value, color }) => {
     emerald: "text-emerald-700",
     pink: "text-pink-700",
     amber: "text-amber-700",
+    purple: "text-purple-700",
   };
 
   return (
