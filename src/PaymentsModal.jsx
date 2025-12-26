@@ -25,7 +25,7 @@ export default function PaymentsModal({
     (sum, p) => sum + (Number(p.amount) || 0),
     0
   );
-  const remaining = totalAmount - paidTotal;
+  const remaining = Number(totalAmount) - paidTotal;
 
   // Add new payment row
   const addPayment = () => {
@@ -63,10 +63,16 @@ export default function PaymentsModal({
       return;
     }
 
-    // Check if total matches
-    if (paidTotal !== totalAmount) {
+    // Check if total matches - convert both to numbers for comparison
+    const totalPayments = paymentsList.reduce(
+      (sum, p) => sum + Number(p.amount),
+      0
+    );
+    const expectedTotal = Number(totalAmount);
+
+    if (totalPayments !== expectedTotal) {
       setError(
-        `סכום התשלומים (₪${paidTotal}) לא תואם להצעת המחיר (₪${totalAmount})`
+        `סכום התשלומים (₪${totalPayments}) לא תואם להצעת המחיר (₪${expectedTotal})`
       );
       return;
     }
