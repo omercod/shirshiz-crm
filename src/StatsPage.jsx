@@ -404,7 +404,7 @@ export default function StatsPage() {
       </div>
 
       {/* Additional Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] border border-emerald-200">
           <div className="text-xs lg:text-sm font-black text-emerald-600 mb-1 lg:mb-2">
             עסקאות שנסגרו
@@ -438,6 +438,18 @@ export default function StatsPage() {
           </div>
           <div className="text-[10px] lg:text-xs text-blue-600 font-bold mt-1 lg:mt-2">
             לליד שנסגר
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] border border-pink-200">
+          <div className="text-xs lg:text-sm font-black text-pink-600 mb-1 lg:mb-2">
+            💼 הכנסות פוטנציאליות
+          </div>
+          <div className="text-2xl lg:text-4xl font-black text-pink-700">
+            ₪{stats.potentialRevenue.toLocaleString()}
+          </div>
+          <div className="text-[10px] lg:text-xs text-pink-600 font-bold mt-1 lg:mt-2">
+            {stats.inProgress} עסקאות בתהליך
           </div>
         </div>
       </div>
