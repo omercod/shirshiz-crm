@@ -187,10 +187,12 @@ export default function LeadsPage() {
     now.setHours(0, 0, 0, 0);
 
     if (timeFilter === "day") {
-      // היום
+      // היום - תאריך מקומי
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayStr = today.toISOString().split("T")[0];
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+      const todayStr = `${year}-${month}-${day}`;
       return leads.filter((l) => l.regDate === todayStr);
     }
 
@@ -318,8 +320,8 @@ export default function LeadsPage() {
           <div className="flex flex-wrap gap-2 w-full md:w-auto">
             {[
               { val: "day", label: "היום" },
-              { val: "week", label: "שבוע" },
-              { val: "month", label: "חודש" },
+              { val: "week", label: "השבוע" },
+              { val: "month", label: "החודש" },
               { val: "all", label: "הכל" },
             ].map((opt) => (
               <button

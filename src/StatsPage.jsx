@@ -22,10 +22,12 @@ export default function StatsPage() {
 
     if (statsTimeFilter !== "all") {
       if (statsTimeFilter === "day") {
-        // היום
+        // היום - תאריך מקומי
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const todayStr = today.toISOString().split("T")[0];
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const day = String(today.getDate()).padStart(2, "0");
+        const todayStr = `${year}-${month}-${day}`;
         filtered = leads.filter((l) => l.regDate === todayStr);
       } else if (statsTimeFilter === "week") {
         // מיום ראשון עד היום
@@ -319,9 +321,9 @@ export default function StatsPage() {
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           {[
             { val: "day", label: "היום" },
-            { val: "week", label: "שבוע" },
-            { val: "month", label: "חודש" },
-            { val: "year", label: "שנה" },
+            { val: "week", label: "השבוע" },
+            { val: "month", label: "החודש" },
+            { val: "year", label: "השנה" },
             { val: "all", label: "הכל" },
           ].map((opt) => (
             <button
