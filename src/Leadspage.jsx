@@ -184,29 +184,78 @@ export default function LeadsPage() {
     if (timeFilter === "all") return leads;
 
     const now = new Date();
-    const limit = new Date();
+    now.setHours(0, 0, 0, 0);
 
     if (timeFilter === "day") {
-      const today = new Date().toISOString().split("T")[0];
-      return leads.filter((l) => l.regDate === today);
+      // היום
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayStr = today.toISOString().split("T")[0];
+      return leads.filter((l) => l.regDate === todayStr);
+    }
+
+    if (timeFilter === "week") {
+      // מיום ראשון עד היום
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const dayOfWeek = today.getDay(); // 0 = ראשון, 1 = שני, ..., 6 = שבת
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - dayOfWeek); // חזרה ליום ראשון
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      return leads.filter((l) => {
+        const leadDate = new Date(l.regDate);
+        leadDate.setHours(0, 0, 0, 0);
+        return leadDate >= startOfWeek && leadDate <= today;
+      });
+    }
+
+    if (timeFilter === "month") {
+      // מה-1 בחודש עד היום
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      return leads.filter((l) => {
+        const leadDate = new Date(l.regDate);
+        leadDate.setHours(0, 0, 0, 0);
+        return leadDate >= startOfMonth && leadDate <= today;
+      });
+    }
+
+    if (timeFilter === "year") {
+      // מ-1.1 עד היום
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const startOfYear = new Date(today.getFullYear(), 0, 1);
+      startOfYear.setHours(0, 0, 0, 0);
+
+      return leads.filter((l) => {
+        const leadDate = new Date(l.regDate);
+        leadDate.setHours(0, 0, 0, 0);
+        return leadDate >= startOfYear && leadDate <= today;
+      });
     }
 
     if (timeFilter === "custom") {
+      // מותאם אישית
       if (customDateRange.from && customDateRange.to) {
         const fromDate = new Date(customDateRange.from);
+        fromDate.setHours(0, 0, 0, 0);
         const toDate = new Date(customDateRange.to);
+        toDate.setHours(23, 59, 59, 999);
+
         return leads.filter((l) => {
           const leadDate = new Date(l.regDate);
+          leadDate.setHours(0, 0, 0, 0);
           return leadDate >= fromDate && leadDate <= toDate;
         });
       }
       return leads;
     }
 
-    if (timeFilter === "week") limit.setDate(now.getDate() - 7);
-    if (timeFilter === "month") limit.setMonth(now.getMonth() - 1);
-
-    return leads.filter((l) => new Date(l.regDate) >= limit);
+    return leads;
   }, [leads, timeFilter, customDateRange]);
 
   const sortedAndFilteredLeads = useMemo(() => {
