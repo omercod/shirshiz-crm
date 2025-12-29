@@ -960,7 +960,7 @@ const QuickEditModal = ({ lead, onSave, onClose, onOpenPayments }) => {
 
         {/* Form Content - Scrollable */}
         <div className="overflow-y-auto flex-1">
-          <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 pb-24 sm:pb-4">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 pb-6 sm:pb-4">
             {/* 3 Columns Layout */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
               {/* Column 1: Contact Info */}

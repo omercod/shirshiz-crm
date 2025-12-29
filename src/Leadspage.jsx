@@ -1049,7 +1049,7 @@ const LeadModal = ({ lead, onSave, onClose, error, onOpenPayments }) => {
 
         {/* Form - Scrollable with reduced bottom padding */}
         <div className="overflow-y-auto flex-1">
-          <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 pb-24 sm:pb-4">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 pb-6 sm:pb-4">
             {error && (
               <div className="bg-rose-50 text-rose-600 p-3 rounded-xl flex items-center gap-2 font-black text-xs border border-rose-100">
                 <AlertCircle size={16} className="flex-shrink-0" />
