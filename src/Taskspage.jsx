@@ -929,7 +929,7 @@ const QuickEditModal = ({ lead, onSave, onClose, onOpenPayments }) => {
       onClick={onClose}
     >
       <div
-        className="bg-white w-full max-w-5xl my-4 sm:my-8 max-h-[calc(100vh-12rem)] sm:max-h-[90vh] rounded-2xl shadow-2xl flex flex-col mx-auto"
+        className="bg-white w-full max-w-2xl my-8 sm:my-8 max-h-[calc(100vh-16rem)] sm:max-h-[90vh] rounded-2xl shadow-2xl flex flex-col mx-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header - Compact */}
@@ -960,7 +960,7 @@ const QuickEditModal = ({ lead, onSave, onClose, onOpenPayments }) => {
 
         {/* Form Content - Scrollable */}
         <div className="overflow-y-auto flex-1">
-          <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 pb-4 sm:pb-4">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 pb-24 sm:pb-4">
             {/* 3 Columns Layout */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
               {/* Column 1: Contact Info */}
@@ -1105,7 +1105,6 @@ const QuickEditModal = ({ lead, onSave, onClose, onOpenPayments }) => {
                 </div>
               </div>
             </div>
-
             {/* Dates and Notes - Reduced spacing */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 pt-3 border-t border-slate-100">
               <div className="space-y-2.5">
