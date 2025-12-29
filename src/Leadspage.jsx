@@ -1073,6 +1073,7 @@ const LeadModal = ({ lead, onSave, onClose, error, onOpenPayments }) => {
                     />
                     <InputField
                       label="טלפון *"
+                      type="tel"
                       value={formData.phone}
                       onChange={(v) => setFormData({ ...formData, phone: v })}
                       placeholder="05XXXXXXXX"
