@@ -344,7 +344,7 @@ export default function CalendarPage() {
   );
 }
 
-// Quick View Modal - Compact & Efficient
+// Quick View Modal - Compact & Efficient - OPTIMIZED
 const QuickViewModal = ({ lead, onClose, onUpdate }) => {
   const [formData, setFormData] = useState({
     ...lead,
@@ -382,28 +382,28 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end lg:items-center justify-center p-0 lg:p-4"
+      className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="bg-white w-full lg:max-w-3xl max-h-[92vh] rounded-t-[2rem] lg:rounded-[2rem] shadow-2xl flex flex-col animate-in slide-in-from-bottom lg:zoom-in duration-200"
+        className="bg-white w-full max-w-3xl my-4 sm:my-8 max-h-[calc(100vh-12rem)] sm:max-h-[90vh] rounded-2xl shadow-2xl flex flex-col mx-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header - Compact */}
         <div
-          className={`flex-shrink-0 bg-gradient-to-r from-${eventInfo.color}-50 to-${eventInfo.color}-100/50 px-4 lg:px-6 py-3 lg:py-4 border-b border-${eventInfo.color}-100`}
+          className={`sticky top-0 flex-shrink-0 bg-gradient-to-r from-${eventInfo.color}-50 to-${eventInfo.color}-100/50 px-4 sm:px-6 py-3 sm:py-4 border-b border-${eventInfo.color}-100 rounded-t-2xl z-20`}
         >
           <div className="flex justify-between items-center gap-3">
-            <div className="flex items-center gap-2 lg:gap-3 flex-1 min-w-0">
-              <span className="text-xl lg:text-2xl flex-shrink-0">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="text-xl sm:text-2xl flex-shrink-0">
                 {eventInfo.emoji}
               </span>
               <div className="min-w-0">
-                <h3 className="text-base lg:text-xl font-black text-slate-800 truncate">
+                <h3 className="text-base sm:text-lg font-black text-slate-800 truncate">
                   {lead.name}
                 </h3>
                 <p
-                  className={`text-[10px] lg:text-xs font-bold text-${eventInfo.color}-600`}
+                  className={`text-[9px] sm:text-[10px] font-bold text-${eventInfo.color}-600`}
                 >
                   {lead.event2Date || lead.eventDate || lead.nextCallDate}
                 </p>
@@ -411,7 +411,7 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 lg:p-2 hover:bg-white/50 rounded-lg text-slate-400 transition-all flex-shrink-0"
+              className="p-1.5 hover:bg-white/50 rounded-lg text-slate-400 transition-all flex-shrink-0"
             >
               <X size={20} />
             </button>
@@ -420,10 +420,10 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
 
         {/* Body - Scrollable */}
         <div className="overflow-y-auto flex-1">
-          <div className="p-4 lg:p-6 space-y-4 pb-24">
+          <div className="p-4 sm:p-6 space-y-3 sm:space-y-4 pb-4 sm:pb-4">
             {/* Contact Info - Always visible */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-slate-50 p-3 rounded-xl">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              <div className="bg-slate-50 p-2.5 sm:p-3 rounded-lg sm:rounded-xl">
                 <div className="text-[9px] font-black text-slate-400 uppercase mb-1">
                   טלפון
                 </div>
@@ -431,7 +431,7 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
                   {lead.phone}
                 </div>
               </div>
-              <div className="bg-slate-50 p-3 rounded-xl">
+              <div className="bg-slate-50 p-2.5 sm:p-3 rounded-lg sm:rounded-xl">
                 <div className="text-[9px] font-black text-slate-400 uppercase mb-1">
                   עיר
                 </div>
@@ -443,22 +443,22 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
 
             {/* Closed Lead - Event Type, Quote & Dates */}
             {isClosed && (
-              <div className="space-y-3">
+              <div className="space-y-2.5 sm:space-y-3">
                 {/* Event Type & Quote - 2 Columns */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                   {/* Event Type */}
                   <div>
-                    <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                    <label className="text-[9px] font-black text-slate-500 mb-1 block px-0.5">
                       סוג האירוע
                     </label>
                     <div
-                      className={`p-0.5 rounded-xl border-2 ${
+                      className={`p-0.5 rounded-lg border-2 ${
                         EVENT_TYPES[formData.eventType || "אחר"]?.color ||
                         "bg-slate-50"
                       }`}
                     >
                       <select
-                        className="w-full p-2.5 bg-transparent font-black outline-none cursor-pointer text-sm"
+                        className="w-full p-2 bg-transparent font-black outline-none cursor-pointer text-sm"
                         value={formData.eventType || "אחר"}
                         onChange={(e) =>
                           setFormData({
@@ -482,12 +482,12 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
 
                   {/* Quote */}
                   <div>
-                    <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                    <label className="text-[9px] font-black text-slate-500 mb-1 block px-0.5">
                       הצעת מחיר (₪)
                     </label>
                     <input
                       type="number"
-                      className="w-full p-3 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                      className="w-full p-2.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-lg outline-none font-bold text-slate-800 text-sm"
                       value={formData.quote}
                       onChange={(e) =>
                         setFormData({ ...formData, quote: e.target.value })
@@ -498,15 +498,15 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
                 </div>
 
                 {/* Event Dates */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                   {/* Event Date 1 */}
                   <div>
-                    <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                    <label className="text-[9px] font-black text-slate-500 mb-1 block px-0.5">
                       אירוע ראשון
                     </label>
                     <input
                       type="date"
-                      className="w-full p-3 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                      className="w-full p-2.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-lg outline-none font-bold text-slate-800 text-sm"
                       value={formData.eventDate}
                       onChange={(e) =>
                         setFormData({ ...formData, eventDate: e.target.value })
@@ -517,12 +517,12 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
                   {/* Event Date 2 - Only for מאפס למקצוענית */}
                   {formData.eventType === "מאפס למקצוענית" && (
                     <div>
-                      <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
-                        🎂 אירוע שני (מפגש 2)
+                      <label className="text-[9px] font-black text-slate-500 mb-1 block px-0.5">
+                        🎂 אירוע שני
                       </label>
                       <input
                         type="date"
-                        className="w-full p-3 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                        className="w-full p-2.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-lg outline-none font-bold text-slate-800 text-sm"
                         value={formData.event2Date}
                         onChange={(e) =>
                           setFormData({
@@ -540,21 +540,21 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
             {/* Active Lead - 2 Columns Layout */}
             {!isClosed && (
               <>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                   {/* Column 1 */}
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     {/* Status */}
                     <div>
-                      <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                      <label className="text-[9px] font-black text-slate-500 mb-1 block px-0.5">
                         סטטוס
                       </label>
                       <div
-                        className={`p-0.5 rounded-xl border-2 ${
+                        className={`p-0.5 rounded-lg border-2 ${
                           STATUSES[formData.status]?.color || "bg-slate-50"
                         }`}
                       >
                         <select
-                          className="w-full p-2.5 bg-transparent font-black outline-none cursor-pointer text-sm"
+                          className="w-full p-2 bg-transparent font-black outline-none cursor-pointer text-sm"
                           value={formData.status}
                           onChange={(e) =>
                             setFormData({
@@ -578,12 +578,12 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
 
                     {/* Quote */}
                     <div>
-                      <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                      <label className="text-[9px] font-black text-slate-500 mb-1 block px-0.5">
                         הצעת מחיר (₪)
                       </label>
                       <input
                         type="number"
-                        className="w-full p-3 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                        className="w-full p-2.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-lg outline-none font-bold text-slate-800 text-sm"
                         value={formData.quote}
                         onChange={(e) =>
                           setFormData({ ...formData, quote: e.target.value })
@@ -594,15 +594,15 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
                   </div>
 
                   {/* Column 2 */}
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     {/* City */}
                     <div>
-                      <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                      <label className="text-[9px] font-black text-slate-500 mb-1 block px-0.5">
                         עיר
                       </label>
                       <input
                         type="text"
-                        className="w-full p-3 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                        className="w-full p-2.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-lg outline-none font-bold text-slate-800 text-sm"
                         value={formData.city}
                         onChange={(e) =>
                           setFormData({ ...formData, city: e.target.value })
@@ -613,12 +613,12 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
 
                     {/* Next Call Date */}
                     <div>
-                      <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                      <label className="text-[9px] font-black text-slate-500 mb-1 block px-0.5">
                         שיחה חוזרת
                       </label>
                       <input
                         type="date"
-                        className="w-full p-3 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm"
+                        className="w-full p-2.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-lg outline-none font-bold text-slate-800 text-sm"
                         value={formData.nextCallDate}
                         onChange={(e) =>
                           setFormData({
@@ -633,11 +633,11 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
 
                 {/* Notes - Full Width */}
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                  <label className="text-[9px] font-black text-slate-500 mb-1 block px-0.5">
                     הערות לשיחה
                   </label>
                   <textarea
-                    className="w-full p-3 bg-slate-50 border-none rounded-xl outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[100px] resize-none"
+                    className="w-full p-3 bg-slate-50 border-none rounded-lg outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[80px] resize-none"
                     placeholder="הוסיפי הערות מהשיחה..."
                     value={formData.callDetails}
                     onChange={(e) =>
@@ -651,11 +651,11 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
             {/* Notes for Closed Leads */}
             {isClosed && (
               <div>
-                <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                <label className="text-[9px] font-black text-slate-500 mb-1 block px-0.5">
                   הערות
                 </label>
                 <textarea
-                  className="w-full p-3 bg-slate-50 border-none rounded-xl outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[80px] resize-none"
+                  className="w-full p-3 bg-slate-50 border-none rounded-lg outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[80px] resize-none"
                   placeholder="הערות..."
                   value={formData.callDetails}
                   onChange={(e) =>
@@ -667,18 +667,18 @@ const QuickViewModal = ({ lead, onClose, onUpdate }) => {
           </div>
         </div>
 
-        {/* Footer - Sticky */}
-        <div className="flex-shrink-0 p-4 lg:p-6 border-t border-slate-100 bg-white">
-          <div className="flex gap-3">
+        {/* Footer - Fixed */}
+        <div className="flex-shrink-0 p-3 sm:p-4 border-t border-slate-100 bg-white rounded-b-2xl shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+          <div className="flex gap-2.5">
             <button
               onClick={handleSave}
-              className="flex-1 bg-pink-600 text-white py-3 rounded-xl font-black hover:bg-pink-700 transition-all active:scale-95 text-sm lg:text-base"
+              className="flex-1 bg-pink-600 text-white py-2.5 rounded-lg font-black hover:bg-pink-700 transition-all active:scale-95 text-sm"
             >
               שמירה
             </button>
             <button
               onClick={onClose}
-              className="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-200 transition-all active:scale-95 text-sm lg:text-base"
+              className="flex-1 bg-slate-100 text-slate-600 py-2.5 rounded-lg font-bold hover:bg-slate-200 transition-all active:scale-95 text-sm"
             >
               סגירה
             </button>

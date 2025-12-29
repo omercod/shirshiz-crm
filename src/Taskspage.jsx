@@ -919,41 +919,40 @@ const SortIcon = ({ columnKey, config }) => {
   );
 };
 
-// Quick Edit Modal Component (Responsive)
+// Quick Edit Modal Component (Responsive) - OPTIMIZED
 const QuickEditModal = ({ lead, onSave, onClose, onOpenPayments }) => {
   const [formData, setFormData] = useState(lead);
 
   return (
     <div
-      className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end lg:items-center justify-center p-0 lg:p-4"
+      className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="bg-white w-full lg:max-w-5xl h-[95vh] lg:max-h-[90vh] rounded-t-[2rem] lg:rounded-[2.5rem] shadow-2xl flex flex-col animate-in slide-in-from-bottom lg:zoom-in duration-200"
+        className="bg-white w-full max-w-5xl my-4 sm:my-8 max-h-[calc(100vh-12rem)] sm:max-h-[90vh] rounded-2xl shadow-2xl flex flex-col mx-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex-shrink-0 bg-gradient-to-r from-pink-50 to-purple-50 px-4 lg:px-8 py-4 lg:py-6 border-b border-slate-100 flex justify-between items-center gap-3">
-          <div className="flex items-center gap-2 lg:gap-4 flex-1 min-w-0">
+        {/* Header - Compact */}
+        <div className="sticky top-0 bg-gradient-to-r from-pink-50 to-purple-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex justify-between items-center z-20 gap-3 flex-shrink-0 rounded-t-2xl">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/50 rounded-xl text-slate-400 transition-all flex-shrink-0"
+              className="p-1.5 hover:bg-white/50 rounded-lg text-slate-400 transition-all flex-shrink-0"
             >
-              <X size={20} className="lg:hidden" />
-              <X size={24} className="hidden lg:block" />
+              <X size={20} />
             </button>
             <div className="min-w-0">
-              <h3 className="text-lg lg:text-2xl font-black text-slate-800 truncate">
+              <h3 className="text-base sm:text-lg font-black text-slate-800 truncate">
                 עריכת {formData.name || "משימה"}
               </h3>
-              <p className="text-[10px] lg:text-xs font-bold text-slate-400 italic">
+              <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 italic">
                 עדכון מהיר • SHIRSHIZ CRM
               </p>
             </div>
           </div>
           <button
             onClick={() => onSave(formData)}
-            className="bg-pink-600 text-white px-4 lg:px-8 py-2 lg:py-3 rounded-xl shadow-lg font-black hover:bg-pink-700 transition-all active:scale-95 text-sm lg:text-base flex-shrink-0"
+            className="hidden sm:flex bg-pink-600 text-white px-6 py-2 rounded-xl shadow-lg font-black hover:bg-pink-700 transition-all active:scale-95 text-sm flex-shrink-0"
           >
             שמור
           </button>
@@ -961,42 +960,45 @@ const QuickEditModal = ({ lead, onSave, onClose, onOpenPayments }) => {
 
         {/* Form Content - Scrollable */}
         <div className="overflow-y-auto flex-1">
-          <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 pb-24">
-            {/* 3 Columns Layout - Desktop */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 pb-4 sm:pb-4">
+            {/* 3 Columns Layout */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
               {/* Column 1: Contact Info */}
-              <div className="space-y-3 lg:space-y-4">
-                <SectionTitle icon={<User size={14} />} title="פרטי קשר" />
-                <div className="space-y-3">
-                  <InputField
-                    label="שם *"
-                    value={formData.name}
-                    onChange={(v) => setFormData({ ...formData, name: v })}
-                    placeholder="שם מלא"
-                  />
-                  <InputField
-                    label="טלפון *"
-                    value={formData.phone}
-                    onChange={(v) => setFormData({ ...formData, phone: v })}
-                    placeholder="05XXXXXXXX"
-                  />
+              <div className="space-y-3">
+                <SectionTitle icon={<User size={12} />} title="פרטי קשר" />
+                <div className="space-y-2.5">
+                  {/* שם + טלפון באותה שורה */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <InputField
+                      label="שם *"
+                      value={formData.name}
+                      onChange={(v) => setFormData({ ...formData, name: v })}
+                      placeholder="שם מלא"
+                    />
+                    <InputField
+                      label="טלפון *"
+                      value={formData.phone}
+                      onChange={(v) => setFormData({ ...formData, phone: v })}
+                      placeholder="05XXXXXXXX"
+                    />
+                  </div>
                   <InputField
                     label="מייל"
                     value={formData.email}
                     onChange={(v) => setFormData({ ...formData, email: v })}
                     placeholder="email@example.com"
-                    icon={<AtSign size={14} />}
+                    icon={<AtSign size={12} />}
                   />
                 </div>
               </div>
 
               {/* Column 2: Status & Quote */}
-              <div className="space-y-3 lg:space-y-4">
+              <div className="space-y-3">
                 <SectionTitle
-                  icon={<MessageCircle size={14} />}
+                  icon={<MessageCircle size={12} />}
                   title="סטטוס"
                 />
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <SelectField
                     label="סטטוס"
                     value={formData.status}
@@ -1031,26 +1033,22 @@ const QuickEditModal = ({ lead, onSave, onClose, onOpenPayments }) => {
                       EVENT_TYPES[formData.eventType || "אחר"]?.color
                     }
                   />
-                  {/* הצעה + כפתור תשלומים */}
                   <div>
-                    <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+                    <label className="text-[9px] font-black text-slate-500 mb-1 block px-0.5">
                       הצעה (₪)
                     </label>
                     <div className="flex gap-2">
-                      {/* שדה הצעה */}
                       <div className="flex-1">
                         <input
                           type="number"
                           placeholder="0"
-                          className="w-full p-3 lg:p-3.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm transition-all"
+                          className="w-full p-2.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-lg outline-none font-bold text-slate-800 text-sm transition-all"
                           value={formData.quote || ""}
                           onChange={(e) =>
                             setFormData({ ...formData, quote: e.target.value })
                           }
                         />
                       </div>
-
-                      {/* כפתור תשלומים */}
                       <button
                         onClick={() => {
                           if (!formData.quote || formData.quote <= 0) {
@@ -1059,12 +1057,12 @@ const QuickEditModal = ({ lead, onSave, onClose, onOpenPayments }) => {
                           }
                           onOpenPayments(formData, setFormData);
                         }}
-                        className="px-4 py-3 bg-emerald-50 border-2 border-emerald-200 rounded-xl font-black text-emerald-700 hover:bg-emerald-100 transition-all active:scale-95 flex items-center gap-2 whitespace-nowrap"
+                        className="px-3 py-2.5 bg-emerald-50 border-2 border-emerald-200 rounded-lg font-black text-emerald-700 hover:bg-emerald-100 transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap text-sm"
                         title="ניהול תשלומים"
                       >
                         💰
                         {formData.payments && formData.payments.length > 0 && (
-                          <span className="bg-emerald-600 text-white px-1.5 py-0.5 rounded-full text-[10px] font-black">
+                          <span className="bg-emerald-600 text-white px-1.5 py-0.5 rounded-full text-[9px] font-black">
                             {formData.payments.length}
                           </span>
                         )}
@@ -1075,12 +1073,12 @@ const QuickEditModal = ({ lead, onSave, onClose, onOpenPayments }) => {
               </div>
 
               {/* Column 3: Demographics */}
-              <div className="space-y-3 lg:space-y-4">
+              <div className="space-y-3">
                 <SectionTitle
-                  icon={<MapPin size={14} />}
+                  icon={<MapPin size={12} />}
                   title="פרטים נוספים"
                 />
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <InputField
                     label="עיר"
                     value={formData.city}
@@ -1108,14 +1106,14 @@ const QuickEditModal = ({ lead, onSave, onClose, onOpenPayments }) => {
               </div>
             </div>
 
-            {/* Dates and Notes - Full Width */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 pt-4 lg:pt-6 border-t border-slate-50">
-              <div className="space-y-3">
+            {/* Dates and Notes - Reduced spacing */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 pt-3 border-t border-slate-100">
+              <div className="space-y-2.5">
                 <SectionTitle
-                  icon={<CalendarIcon size={14} />}
+                  icon={<CalendarIcon size={12} />}
                   title="תאריכים"
                 />
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <InputField
                     label="שיחה חוזרת"
                     type="date"
@@ -1131,13 +1129,11 @@ const QuickEditModal = ({ lead, onSave, onClose, onOpenPayments }) => {
                     onChange={(v) => setFormData({ ...formData, eventDate: v })}
                   />
                 </div>
-
-                {/* 🎂 אירוע 2 - רק למי שבאפס למקצוענית + נסגר */}
                 {formData.eventType === "מאפס למקצוענית" &&
                   Number(formData.status) === 3 && (
-                    <div className="pt-2">
+                    <div className="pt-1">
                       <InputField
-                        label="🎂 אירוע שני (מפגש 2)"
+                        label="🎂 אירוע שני"
                         type="date"
                         value={formData.event2Date}
                         onChange={(v) =>
@@ -1147,13 +1143,13 @@ const QuickEditModal = ({ lead, onSave, onClose, onOpenPayments }) => {
                     </div>
                   )}
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <SectionTitle
-                  icon={<MessageCircle size={14} />}
+                  icon={<MessageCircle size={12} />}
                   title="הערות"
                 />
                 <textarea
-                  className="w-full p-3 lg:p-4 bg-slate-50 border-none rounded-xl lg:rounded-2xl outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[80px] lg:min-h-[100px] resize-none"
+                  className="w-full p-3 bg-slate-50 border-none rounded-lg outline-none font-bold text-sm text-slate-700 focus:ring-2 focus:ring-pink-100 min-h-[80px] resize-none"
                   placeholder="סיכום שיחה..."
                   value={formData.callDetails || ""}
                   onChange={(e) =>
@@ -1164,14 +1160,30 @@ const QuickEditModal = ({ lead, onSave, onClose, onOpenPayments }) => {
             </div>
           </div>
         </div>
+
+        {/* Footer - Mobile Only */}
+        <div className="sm:hidden border-t border-slate-100 p-3 bg-white flex gap-2.5 flex-shrink-0 rounded-b-2xl shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+          <button
+            onClick={() => onSave(formData)}
+            className="flex-1 bg-pink-600 text-white py-2.5 rounded-lg font-black hover:bg-pink-700 transition-all active:scale-95 text-sm"
+          >
+            שמור
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 bg-slate-100 text-slate-600 py-2.5 rounded-lg font-bold hover:bg-slate-200 transition-all active:scale-95 text-sm"
+          >
+            ביטול
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-// Form Components
+// Form Components - Compact
 const SectionTitle = ({ icon, title }) => (
-  <div className="flex items-center gap-2 text-slate-400 font-black text-[10px] lg:text-[11px] uppercase tracking-[0.1em] pb-1">
+  <div className="flex items-center gap-1.5 text-slate-400 font-black text-[9px] sm:text-[10px] uppercase tracking-wider pb-0.5">
     {icon} <span>{title}</span>
   </div>
 );
@@ -1185,20 +1197,20 @@ const InputField = ({
   icon = null,
 }) => (
   <div>
-    <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+    <label className="text-[9px] font-black text-slate-500 mb-1 block px-0.5">
       {label}
     </label>
     <div className="relative">
       {icon && (
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300">
+        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-300">
           {icon}
         </div>
       )}
       <input
         type={type}
         placeholder={placeholder}
-        className={`w-full p-3 lg:p-3.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-xl outline-none font-bold text-slate-800 text-sm transition-all ${
-          icon ? "pl-10" : ""
+        className={`w-full p-2.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-lg outline-none font-bold text-slate-800 text-sm transition-all ${
+          icon ? "pl-9" : ""
         }`}
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
@@ -1218,16 +1230,16 @@ const SelectField = ({
 
   return (
     <div>
-      <label className="text-[10px] font-black text-slate-500 mb-1.5 block px-1">
+      <label className="text-[9px] font-black text-slate-500 mb-1 block px-0.5">
         {label}
       </label>
       <div
-        className={`p-0.5 rounded-xl border-2 transition-all ${
+        className={`p-0.5 rounded-lg border-2 transition-all ${
           dynamicClass || "bg-slate-50 border-transparent"
         }`}
       >
         <select
-          className={`w-full p-2.5 lg:p-3 bg-transparent font-black outline-none cursor-pointer text-sm ${
+          className={`w-full p-2 bg-transparent font-black outline-none cursor-pointer text-sm ${
             isWhiteText ? "text-white" : "text-slate-800"
           }`}
           value={value}
