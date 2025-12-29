@@ -758,7 +758,7 @@ const MobileTaskCard = ({
         {lead.regDate && (
           <div className="text-xs text-slate-400 font-semibold">
             נרשם: {formatIsraeliDate(lead.regDate)}
-            {lead.regTime && <span className="mr-2">{lead.regTime}</span>}
+            {lead.regTime && <span className="mr-1"> | {lead.regTime}</span>}
           </div>
         )}
       </div>
