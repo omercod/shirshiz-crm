@@ -942,7 +942,7 @@ const QuickEditModal = ({ lead, onSave, onClose, onOpenPayments }) => {
               <X size={20} />
             </button>
             <div className="min-w-0">
-              <h3 className="text-base sm:text-lg font-black text-slate-800 truncate">
+              <h3 className="text-base sm:text-lg font-black text-pink-600 truncate">
                 עריכת {formData.name || "משימה"}
               </h3>
               <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 italic">

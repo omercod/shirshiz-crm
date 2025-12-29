@@ -1031,7 +1031,7 @@ const LeadModal = ({ lead, onSave, onClose, error, onOpenPayments }) => {
               <X size={20} />
             </button>
             <div className="min-w-0">
-              <h3 className="text-base sm:text-lg font-black text-slate-800 truncate">
+              <h3 className="text-base sm:text-lg font-black text-pink-600 truncate">
                 {formData.id ? `עריכת ${formData.name || "לקוחה"}` : "ליד חדש"}
               </h3>
               <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 italic">
