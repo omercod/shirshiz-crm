@@ -286,6 +286,20 @@ export default function StatsPage() {
       }
     });
 
+    // חישוב השוואת סדנאות
+    const closedLeads = filtered.filter((l) => Number(l.status) === 3);
+    const proCount = closedLeads.filter(
+      (l) => l.eventType === "מאפס למקצוענית"
+    ).length;
+    const vintageCount = closedLeads.filter(
+      (l) => l.eventType === "סדנת וינטאג'"
+    ).length;
+    const workshopTotal = proCount + vintageCount;
+    const proPercentage =
+      workshopTotal > 0 ? ((proCount / workshopTotal) * 100).toFixed(1) : 0;
+    const vintagePercentage =
+      workshopTotal > 0 ? ((vintageCount / workshopTotal) * 100).toFixed(1) : 0;
+
     return {
       total,
       closed,
@@ -301,6 +315,11 @@ export default function StatsPage() {
       filteredRevenue,
       filteredCashFlow,
       futureRevenue,
+      proCount,
+      vintageCount,
+      workshopTotal,
+      proPercentage,
+      vintagePercentage,
     };
   }, [leads, statsTimeFilter, customDateRange]);
 
@@ -494,6 +513,148 @@ export default function StatsPage() {
           <div className="text-[10px] lg:text-xs text-pink-600 font-bold mt-1 lg:mt-2">
             {stats.inProgress} עסקאות בתהליך
           </div>
+        </div>
+      </div>
+
+      {/* Workshop Comparison Section */}
+      <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 border-2 border-slate-100">
+        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+          <div className="p-2 sm:p-2.5 bg-gradient-to-br from-pink-500 to-purple-500 rounded-xl">
+            <TrendingUp size={20} className="sm:w-6 sm:h-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-base sm:text-lg font-black text-slate-800">
+              השוואת סדנאות
+            </h3>
+            <p className="text-[10px] sm:text-xs text-slate-400 font-bold">
+              מאפס למקצוענית vs סדנת וינטאג'
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4 sm:space-y-6">
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            {/* Pro Course */}
+            <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-4 border-2 border-pink-200">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">🎓</span>
+                <h4 className="text-sm font-black text-slate-700">
+                  מאפס למקצוענית
+                </h4>
+              </div>
+              <div className="text-3xl sm:text-4xl font-black text-pink-600 mb-1">
+                {stats.proCount}
+              </div>
+              <div className="text-xs font-bold text-pink-700">
+                {stats.proPercentage}% מסך הסגירות
+              </div>
+            </div>
+
+            {/* Vintage */}
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border-2 border-purple-200">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">🎂</span>
+                <h4 className="text-sm font-black text-slate-700">
+                  סדנת וינטאג'
+                </h4>
+              </div>
+              <div className="text-3xl sm:text-4xl font-black text-purple-600 mb-1">
+                {stats.vintageCount}
+              </div>
+              <div className="text-xs font-bold text-purple-700">
+                {stats.vintagePercentage}% מסך הסגירות
+              </div>
+            </div>
+
+            {/* Total */}
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-4 border-2 border-slate-200">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">📊</span>
+                <h4 className="text-sm font-black text-slate-700">
+                  סה"כ סגירות
+                </h4>
+              </div>
+              <div className="text-3xl sm:text-4xl font-black text-slate-700 mb-1">
+                {stats.workshopTotal}
+              </div>
+              <div className="text-xs font-bold text-slate-500">
+                סדנאות שנסגרו
+              </div>
+            </div>
+          </div>
+
+          {/* Visual Bar Comparison */}
+          <div className="space-y-3">
+            <div className="text-xs font-black text-slate-500 uppercase tracking-wide">
+              התפלגות סגירות
+            </div>
+
+            {/* Pro Bar */}
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="text-xs font-bold text-slate-600">
+                  🎓 מאפס למקצוענית
+                </span>
+                <span className="text-xs font-black text-pink-600">
+                  {stats.proCount} ({stats.proPercentage}%)
+                </span>
+              </div>
+              <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-pink-500 to-pink-600 rounded-full transition-all duration-500"
+                  style={{ width: `${stats.proPercentage}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Vintage Bar */}
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="text-xs font-bold text-slate-600">
+                  🎂 סדנת וינטאג'
+                </span>
+                <span className="text-xs font-black text-purple-600">
+                  {stats.vintageCount} ({stats.vintagePercentage}%)
+                </span>
+              </div>
+              <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transition-all duration-500"
+                  style={{ width: `${stats.vintagePercentage}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Summary */}
+          {stats.workshopTotal > 0 && (
+            <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                <span className="text-base">
+                  {stats.proCount > stats.vintageCount
+                    ? "🏆"
+                    : stats.proCount === stats.vintageCount
+                    ? "🤝"
+                    : "📈"}
+                </span>
+                <span>
+                  {stats.proCount > stats.vintageCount
+                    ? "מאפס למקצוענית מובילה במכירות"
+                    : stats.proCount === stats.vintageCount
+                    ? "שתי הסדנאות בשוויון מושלם"
+                    : "סדנת וינטאג' מובילה במכירות"}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {stats.workshopTotal === 0 && (
+            <div className="text-center py-6 text-slate-400">
+              <span className="text-2xl mb-2 block">📊</span>
+              <p className="text-sm font-bold">אין עדיין סגירות בתקופה זו</p>
+            </div>
+          )}
         </div>
       </div>
 
