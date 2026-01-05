@@ -286,14 +286,73 @@ export default function StatsPage() {
       }
     });
 
-    // חישוב השוואת סדנאות
-    const closedLeads = filtered.filter((l) => Number(l.status) === 3);
-    const proCount = closedLeads.filter(
+    // חישוב השוואת סדנאות - לפי תאריך תשלום ראשון
+    const workshopClosedLeads = leads.filter((lead) => {
+      // רק נסגר
+      if (Number(lead.status) !== 3) return false;
+
+      // חייב להיות מאפס למקצוענית או וינטאג'
+      if (
+        lead.eventType !== "מאפס למקצוענית" &&
+        lead.eventType !== "סדנת וינטאג'"
+      ) {
+        return false;
+      }
+
+      // חייב להיות לפחות תשלום אחד
+      if (!lead.payments || lead.payments.length === 0) return false;
+
+      // מצא תשלום ראשון
+      const sortedPayments = [...lead.payments].sort(
+        (a, b) => new Date(a.date) - new Date(b.date)
+      );
+      const firstPaymentDate = new Date(sortedPayments[0].date);
+      firstPaymentDate.setHours(0, 0, 0, 0);
+
+      // סינון לפי טווח זמן
+      const today = new Date();
+      const todayStr = getLocalDateString(today);
+      today.setHours(0, 0, 0, 0);
+
+      if (statsTimeFilter === "all") {
+        return true;
+      } else if (statsTimeFilter === "day") {
+        return sortedPayments[0].date === todayStr;
+      } else if (statsTimeFilter === "week") {
+        const dayOfWeek = today.getDay();
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - dayOfWeek);
+        startOfWeek.setHours(0, 0, 0, 0);
+        return firstPaymentDate >= startOfWeek && firstPaymentDate <= today;
+      } else if (statsTimeFilter === "month") {
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        return firstPaymentDate >= startOfMonth && firstPaymentDate <= today;
+      } else if (statsTimeFilter === "year") {
+        const startOfYear = new Date(today.getFullYear(), 0, 1);
+        startOfYear.setHours(0, 0, 0, 0);
+        return firstPaymentDate >= startOfYear && firstPaymentDate <= today;
+      } else if (statsTimeFilter === "custom") {
+        if (customDateRange.from && customDateRange.to) {
+          const fromDate = new Date(customDateRange.from);
+          fromDate.setHours(0, 0, 0, 0);
+          const toDate = new Date(customDateRange.to);
+          toDate.setHours(23, 59, 59, 999);
+          return firstPaymentDate >= fromDate && firstPaymentDate <= toDate;
+        }
+      }
+
+      return false;
+    });
+
+    const proCount = workshopClosedLeads.filter(
       (l) => l.eventType === "מאפס למקצוענית"
     ).length;
-    const vintageCount = closedLeads.filter(
+
+    const vintageCount = workshopClosedLeads.filter(
       (l) => l.eventType === "סדנת וינטאג'"
     ).length;
+
     const workshopTotal = proCount + vintageCount;
     const proPercentage =
       workshopTotal > 0 ? ((proCount / workshopTotal) * 100).toFixed(1) : 0;
