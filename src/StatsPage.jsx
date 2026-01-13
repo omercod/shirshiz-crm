@@ -8,6 +8,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { useAppContext, SOURCES } from "./App";
+import InfoPopup from "./components/InfoPopup";
 
 export default function StatsPage() {
   const { leads } = useAppContext();
@@ -85,17 +86,6 @@ export default function StatsPage() {
     }
 
     const total = filtered.length;
-    const closed = filtered.filter((l) => Number(l.status) === 3).length;
-    const newLeads = filtered.filter((l) => Number(l.status) === 1).length;
-    const inProgress = filtered.filter((l) => Number(l.status) === 2).length;
-    const conversion = total > 0 ? ((closed / total) * 100).toFixed(1) : 0;
-    const totalRevenue = filtered
-      .filter((l) => Number(l.status) === 3)
-      .reduce((acc, curr) => acc + Number(curr.quote || 0), 0);
-    const potentialRevenue = filtered
-      .filter((l) => Number(l.status) === 2)
-      .reduce((acc, curr) => acc + Number(curr.quote || 0), 0);
-    const avgDealSize = closed > 0 ? Math.round(totalRevenue / closed) : 0;
 
     // פונקציה עוזרת - תאריך מקומי
     const getLocalDateString = (date) => {
@@ -104,6 +94,65 @@ export default function StatsPage() {
       const day = String(date.getDate()).padStart(2, "0");
       return `${year}-${month}-${day}`;
     };
+
+    // 🔥 חישוב closed לפי תאריך תשלום ראשון
+    const closedLeads = leads.filter((lead) => {
+      if (Number(lead.status) !== 3) return false;
+      if (!lead.payments || lead.payments.length === 0) return false;
+
+      const sortedPayments = [...lead.payments].sort(
+        (a, b) => new Date(a.date) - new Date(b.date)
+      );
+      const firstPaymentDate = new Date(sortedPayments[0].date);
+      firstPaymentDate.setHours(0, 0, 0, 0);
+
+      const today = new Date();
+      const todayStr = getLocalDateString(today);
+      today.setHours(0, 0, 0, 0);
+
+      if (statsTimeFilter === "all") return true;
+      if (statsTimeFilter === "day") return sortedPayments[0].date === todayStr;
+      if (statsTimeFilter === "week") {
+        const dayOfWeek = today.getDay();
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - dayOfWeek);
+        startOfWeek.setHours(0, 0, 0, 0);
+        return firstPaymentDate >= startOfWeek && firstPaymentDate <= today;
+      }
+      if (statsTimeFilter === "month") {
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        return firstPaymentDate >= startOfMonth && firstPaymentDate <= today;
+      }
+      if (statsTimeFilter === "year") {
+        const startOfYear = new Date(today.getFullYear(), 0, 1);
+        startOfYear.setHours(0, 0, 0, 0);
+        return firstPaymentDate >= startOfYear && firstPaymentDate <= today;
+      }
+      if (statsTimeFilter === "custom") {
+        if (customDateRange.from && customDateRange.to) {
+          const fromDate = new Date(customDateRange.from);
+          fromDate.setHours(0, 0, 0, 0);
+          const toDate = new Date(customDateRange.to);
+          toDate.setHours(23, 59, 59, 999);
+          return firstPaymentDate >= fromDate && firstPaymentDate <= toDate;
+        }
+      }
+      return false;
+    });
+
+    const closed = closedLeads.length;
+    const newLeads = filtered.filter((l) => Number(l.status) === 1).length;
+    const inProgress = filtered.filter((l) => Number(l.status) === 2).length;
+    const conversion = total > 0 ? ((closed / total) * 100).toFixed(1) : 0;
+    const totalRevenue = closedLeads.reduce(
+      (acc, curr) => acc + Number(curr.quote || 0),
+      0
+    );
+    const potentialRevenue = filtered
+      .filter((l) => Number(l.status) === 2)
+      .reduce((acc, curr) => acc + Number(curr.quote || 0), 0);
+    const avgDealSize = closed > 0 ? Math.round(totalRevenue / closed) : 0;
 
     // 💰 חישוב מחזור (Revenue) - לפי תאריך תשלום ראשון
     const calculateRevenue = () => {
@@ -255,6 +304,79 @@ export default function StatsPage() {
     const filteredCashFlow = calculateCashFlow();
     const futureRevenue = calculateFutureRevenue();
 
+    // 💸 הכנת נתונים לפופאפ הכנסות - מקובץ לפי לקוח
+    const cashFlowDetails = (() => {
+      const today = new Date();
+      const todayStr = getLocalDateString(today);
+      today.setHours(0, 0, 0, 0);
+
+      const leadPaymentsMap = new Map(); // leadId -> { lead info, payments[] }
+
+      leads.forEach((lead) => {
+        if (lead.payments && lead.payments.length > 0) {
+          const relevantPayments = [];
+
+          lead.payments.forEach((payment) => {
+            const paymentDate = new Date(payment.date);
+            paymentDate.setHours(0, 0, 0, 0);
+
+            let isInRange = false;
+
+            if (statsTimeFilter === "all") {
+              isInRange = true;
+            } else if (statsTimeFilter === "day") {
+              isInRange = payment.date === todayStr;
+            } else if (statsTimeFilter === "week") {
+              const dayOfWeek = today.getDay();
+              const startOfWeek = new Date(today);
+              startOfWeek.setDate(today.getDate() - dayOfWeek);
+              startOfWeek.setHours(0, 0, 0, 0);
+              isInRange = paymentDate >= startOfWeek && paymentDate <= today;
+            } else if (statsTimeFilter === "month") {
+              const startOfMonth = new Date(
+                today.getFullYear(),
+                today.getMonth(),
+                1
+              );
+              startOfMonth.setHours(0, 0, 0, 0);
+              isInRange = paymentDate >= startOfMonth && paymentDate <= today;
+            } else if (statsTimeFilter === "year") {
+              const startOfYear = new Date(today.getFullYear(), 0, 1);
+              startOfYear.setHours(0, 0, 0, 0);
+              isInRange = paymentDate >= startOfYear && paymentDate <= today;
+            } else if (statsTimeFilter === "custom") {
+              if (customDateRange.from && customDateRange.to) {
+                const fromDate = new Date(customDateRange.from);
+                fromDate.setHours(0, 0, 0, 0);
+                const toDate = new Date(customDateRange.to);
+                toDate.setHours(23, 59, 59, 999);
+                isInRange = paymentDate >= fromDate && paymentDate <= toDate;
+              }
+            }
+
+            if (isInRange) {
+              relevantPayments.push(payment);
+            }
+          });
+
+          if (relevantPayments.length > 0) {
+            leadPaymentsMap.set(lead.id, {
+              name: lead.name,
+              eventType: lead.eventType || "לא צוין",
+              payments: relevantPayments.sort(
+                (a, b) => new Date(a.date) - new Date(b.date)
+              ),
+            });
+          }
+        }
+      });
+
+      // המר ל-array וסדר לפי שם
+      return Array.from(leadPaymentsMap.values()).sort((a, b) =>
+        a.name.localeCompare(b.name, "he")
+      );
+    })();
+
     const sourceData = {};
     filtered.forEach((l) => {
       sourceData[l.source] = (sourceData[l.source] || 0) + 1;
@@ -359,6 +481,20 @@ export default function StatsPage() {
     const vintagePercentage =
       workshopTotal > 0 ? ((vintageCount / workshopTotal) * 100).toFixed(1) : 0;
 
+    // 📊 הכנת נתונים לפופאפ
+    const closedLeadsDetails = closedLeads.map((lead) => {
+      const sortedPayments = [...(lead.payments || [])].sort(
+        (a, b) => new Date(a.date) - new Date(b.date)
+      );
+      const firstPaymentDate = sortedPayments[0]?.date || "לא זמין";
+
+      return {
+        name: lead.name,
+        eventType: lead.eventType,
+        firstPaymentDate: firstPaymentDate,
+      };
+    });
+
     return {
       total,
       closed,
@@ -378,7 +514,9 @@ export default function StatsPage() {
       vintageCount,
       workshopTotal,
       proPercentage,
+      closedLeadsDetails,
       vintagePercentage,
+      cashFlowDetails,
     };
   }, [leads, statsTimeFilter, customDateRange]);
 
@@ -514,19 +652,118 @@ export default function StatsPage() {
           color="purple"
           subtitle="סך עסקאות"
         />
-        <StatCard
-          icon={<DollarSign size={20} className="lg:hidden" />}
-          iconLarge={<DollarSign size={24} className="hidden lg:block" />}
-          title="💰 הכנסות"
-          value={`₪${stats.filteredCashFlow.toLocaleString()}`}
-          color="pink"
-          subtitle="כסף בפועל"
-        />
+        <div className="relative">
+          <InfoPopup
+            title="💰 הכנסות בפועל"
+            data={stats.cashFlowDetails || []}
+            renderItem={(customer, index) => (
+              <div className="space-y-3">
+                {/* Customer Header */}
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                  <div>
+                    <div className="text-sm font-black text-slate-700">
+                      {customer.name}
+                    </div>
+                    <div className="text-xs text-slate-500 font-bold">
+                      🎓 {customer.eventType}
+                    </div>
+                  </div>
+                  <span className="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded-full font-bold">
+                    {customer.payments.length} תשלומים
+                  </span>
+                </div>
+
+                {/* Payments List */}
+                <div className="space-y-2">
+                  {customer.payments.map((payment, paymentIndex) => (
+                    <div
+                      key={paymentIndex}
+                      className="flex items-center justify-between bg-white rounded-lg p-2 border border-slate-100"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-full font-bold">
+                          #{paymentIndex + 1}
+                        </span>
+                        <div className="text-xs">
+                          <div className="font-bold text-slate-600">
+                            📅 {payment.date}
+                          </div>
+                          {payment.description && (
+                            <div className="text-slate-400 text-[10px]">
+                              {payment.description}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-sm font-black text-pink-600">
+                        ₪{Number(payment.amount).toLocaleString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Total for this customer */}
+                <div className="flex items-center justify-between bg-pink-50 rounded-lg p-2 border border-pink-200">
+                  <span className="text-xs font-bold text-slate-600">
+                    סה"כ:
+                  </span>
+                  <span className="text-sm font-black text-pink-700">
+                    ₪
+                    {customer.payments
+                      .reduce((sum, p) => sum + Number(p.amount || 0), 0)
+                      .toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            )}
+          />
+
+          <StatCard
+            icon={<DollarSign size={20} className="lg:hidden" />}
+            iconLarge={<DollarSign size={24} className="hidden lg:block" />}
+            title="💰 הכנסות"
+            value={`₪${stats.filteredCashFlow.toLocaleString()}`}
+            color="pink"
+            subtitle="כסף בפועל"
+          />
+        </div>
       </div>
 
       {/* Additional Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] border border-emerald-200">
+        <div className="relative bg-gradient-to-br from-emerald-50 to-emerald-100 p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] border border-emerald-200">
+          {/* Info Popup */}
+          <InfoPopup
+            title="עסקאות שנסגרו"
+            data={stats.closedLeadsDetails || []}
+            renderItem={(lead, index) => (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-black text-slate-700">
+                    {lead.name}
+                  </span>
+                  <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-bold">
+                    #{index + 1}
+                  </span>
+                </div>
+                <div className="text-xs text-slate-600 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-500">
+                      📅 תאריך סגירה:
+                    </span>
+                    <span className="font-bold">{lead.firstPaymentDate}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-500">🎓 סדנה:</span>
+                    <span className="font-bold">
+                      {lead.eventType || "לא צוין"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          />
+
           <div className="text-xs lg:text-sm font-black text-emerald-600 mb-1 lg:mb-2">
             עסקאות שנסגרו
           </div>
