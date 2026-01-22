@@ -34,6 +34,9 @@ export default function LeadsPage() {
   const [currentFormData, setCurrentFormData] = useState(null);
   const [currentSetFormData, setCurrentSetFormData] = useState(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const LEADS_PER_PAGE = 50;
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [timeFilter, setTimeFilter] = useState("all");
@@ -260,7 +263,8 @@ export default function LeadsPage() {
     return leads;
   }, [leads, timeFilter, customDateRange]);
 
-  const sortedAndFilteredLeads = useMemo(() => {
+  // כל הלידים המסוננים (לפני pagination)
+  const allFilteredLeads = useMemo(() => {
     let sortableLeads = [...filteredByTime];
     sortableLeads = sortableLeads.filter((lead) => {
       const matchesSearch =
@@ -284,6 +288,17 @@ export default function LeadsPage() {
     return sortableLeads;
   }, [filteredByTime, searchTerm, statusFilter, sortConfig]);
 
+  // Pagination
+  const totalPages = Math.ceil(allFilteredLeads.length / LEADS_PER_PAGE);
+  const startIndex = (currentPage - 1) * LEADS_PER_PAGE;
+  const endIndex = startIndex + LEADS_PER_PAGE;
+  const sortedAndFilteredLeads = allFilteredLeads.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, timeFilter, customDateRange]);
+
   const newLeadTemplate = {
     name: "",
     phone: "",
@@ -300,6 +315,99 @@ export default function LeadsPage() {
     callDetails: "",
     regDate: new Date().toISOString().split("T")[0],
     payments: [],
+  };
+
+  // Pagination Component
+  const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+    const getPageNumbers = () => {
+      const pages = [];
+      const maxVisible = 5;
+
+      if (totalPages <= maxVisible) {
+        for (let i = 1; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        if (currentPage <= 3) {
+          pages.push(1, 2, 3, 4, "...", totalPages);
+        } else if (currentPage >= totalPages - 2) {
+          pages.push(
+            1,
+            "...",
+            totalPages - 3,
+            totalPages - 2,
+            totalPages - 1,
+            totalPages
+          );
+        } else {
+          pages.push(
+            1,
+            "...",
+            currentPage - 1,
+            currentPage,
+            currentPage + 1,
+            "...",
+            totalPages
+          );
+        }
+      }
+
+      return pages;
+    };
+
+    if (totalPages <= 1) return null;
+
+    return (
+      <div className="flex items-center justify-center gap-2 py-6">
+        {/* Previous */}
+        <button
+          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+          disabled={currentPage === 1}
+          className="px-3 py-2 rounded-lg font-bold text-sm transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed bg-slate-100 text-slate-600 hover:bg-slate-200"
+        >
+          ← הקודם
+        </button>
+
+        {/* Page Numbers */}
+        <div className="flex gap-1">
+          {getPageNumbers().map((page, index) => {
+            if (page === "...") {
+              return (
+                <span
+                  key={`ellipsis-${index}`}
+                  className="px-3 py-2 text-slate-400 font-bold"
+                >
+                  ...
+                </span>
+              );
+            }
+
+            return (
+              <button
+                key={page}
+                onClick={() => onPageChange(page)}
+                className={`min-w-[40px] px-3 py-2 rounded-lg font-black text-sm transition-all active:scale-95 ${
+                  currentPage === page
+                    ? "bg-pink-600 text-white shadow-lg"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {page}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Next */}
+        <button
+          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+          disabled={currentPage === totalPages}
+          className="px-3 py-2 rounded-lg font-bold text-sm transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed bg-slate-100 text-slate-600 hover:bg-slate-200"
+        >
+          הבא →
+        </button>
+      </div>
+    );
   };
 
   return (
@@ -683,6 +791,11 @@ export default function LeadsPage() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
 
       {/* Mobile Cards */}
@@ -710,6 +823,12 @@ export default function LeadsPage() {
             <p className="font-bold">אין לידים להצגה</p>
           </div>
         )}
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
 
       {/* Modal */}

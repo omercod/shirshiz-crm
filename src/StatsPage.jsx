@@ -371,10 +371,18 @@ export default function StatsPage() {
         }
       });
 
-      // המר ל-array וסדר לפי שם
-      return Array.from(leadPaymentsMap.values()).sort((a, b) =>
-        a.name.localeCompare(b.name, "he")
-      );
+      // המר ל-array וסדר לפי תשלום אחרון
+      return Array.from(leadPaymentsMap.values()).sort((a, b) => {
+        // 🔥 מצא תשלום אחרון של כל לקוח
+        const lastPaymentA = a.payments[a.payments.length - 1];
+        const lastPaymentB = b.payments[b.payments.length - 1];
+
+        const dateA = new Date(lastPaymentA.date);
+        const dateB = new Date(lastPaymentB.date);
+
+        // מיון מהחדש לישן
+        return dateB - dateA;
+      });
     })();
 
     const sourceData = {};
@@ -482,18 +490,33 @@ export default function StatsPage() {
       workshopTotal > 0 ? ((vintageCount / workshopTotal) * 100).toFixed(1) : 0;
 
     // 📊 הכנת נתונים לפופאפ
-    const closedLeadsDetails = closedLeads.map((lead) => {
-      const sortedPayments = [...(lead.payments || [])].sort(
-        (a, b) => new Date(a.date) - new Date(b.date)
-      );
-      const firstPaymentDate = sortedPayments[0]?.date || "לא זמין";
+    const closedLeadsDetails = closedLeads
+      .map((lead) => {
+        const sortedPayments = [...(lead.payments || [])].sort(
+          (a, b) => new Date(a.date) - new Date(b.date)
+        );
+        const firstPaymentDate = sortedPayments[0]?.date || "לא זמין";
 
-      return {
-        name: lead.name,
-        eventType: lead.eventType,
-        firstPaymentDate: firstPaymentDate,
-      };
-    });
+        // 💰 חישוב סכום כולל
+        const totalAmount = sortedPayments.reduce(
+          (sum, payment) => sum + (Number(payment.amount) || 0),
+          0
+        );
+
+        return {
+          name: lead.name,
+          eventType: lead.eventType,
+          firstPaymentDate: firstPaymentDate,
+          totalAmount: totalAmount,
+          quote: lead.quote,
+        };
+      })
+      .sort((a, b) => {
+        // 🔥 מיון מהחדש לישן - לפי תאריך סגירה
+        const dateA = new Date(a.firstPaymentDate);
+        const dateB = new Date(b.firstPaymentDate);
+        return dateB - dateA; // הפוך - החדש ראשון
+      });
 
     return {
       total,
@@ -654,18 +677,25 @@ export default function StatsPage() {
         />
         <div className="relative">
           <InfoPopup
-            title="💰 הכנסות בפועל"
+            title={`💰 הכנסות בפועל • ${
+              stats.cashFlowDetails?.length || 0
+            } לקוחות`}
             data={stats.cashFlowDetails || []}
             renderItem={(customer, index) => (
               <div className="space-y-3">
-                {/* Customer Header */}
+                {/* Customer Header with Number */}
                 <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                  <div>
-                    <div className="text-sm font-black text-slate-700">
-                      {customer.name}
-                    </div>
-                    <div className="text-xs text-slate-500 font-bold">
-                      🎓 {customer.eventType}
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-black text-slate-400">
+                      #{index + 1}
+                    </span>
+                    <div>
+                      <div className="text-sm font-black text-slate-700">
+                        {customer.name}
+                      </div>
+                      <div className="text-xs text-slate-500 font-bold">
+                        🎓 {customer.eventType}
+                      </div>
                     </div>
                   </div>
                   <span className="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded-full font-bold">
@@ -757,6 +787,14 @@ export default function StatsPage() {
                     <span className="font-bold text-slate-500">🎓 סדנה:</span>
                     <span className="font-bold">
                       {lead.eventType || "לא צוין"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-500">
+                      💰 סכום כולל:
+                    </span>
+                    <span className="font-black text-emerald-600">
+                      ₪{lead.totalAmount.toLocaleString()}
                     </span>
                   </div>
                 </div>

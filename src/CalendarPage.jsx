@@ -182,8 +182,12 @@ export default function CalendarPage() {
             return (
               <div
                 key={idx}
-                className={`min-h-[110px] p-1 border-b border-l border-slate-100 ${
-                  day ? "hover:bg-slate-50/20" : "bg-slate-50/10"
+                className={`min-h-[110px] p-1 border-b border-l ${
+                  today
+                    ? "bg-gradient-to-br from-pink-50 to-purple-50 border-pink-300 border-2"
+                    : day
+                    ? "hover:bg-slate-50/20 border-slate-100"
+                    : "bg-slate-50/10 border-slate-100"
                 }`}
               >
                 {day && (
@@ -192,7 +196,7 @@ export default function CalendarPage() {
                       <span
                         className={`text-xs font-black ${
                           today
-                            ? "w-6 h-6 bg-pink-600 text-white rounded-lg flex items-center justify-center"
+                            ? "w-7 h-7 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full flex items-center justify-center shadow-lg"
                             : "text-slate-300"
                         }`}
                       >
