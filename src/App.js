@@ -77,6 +77,9 @@ export const SOURCES = {
   "חבר מביא חבר": {
     color: "bg-green-100 text-green-700 border-green-200",
   },
+  אורגני: {
+    color: "bg-orange-50 text-orange-700 border-orange-100",
+  },
   SHIRSHIZ: {
     color: "bg-indigo-100 text-indigo-700 border-indigo-200",
   },
@@ -141,7 +144,7 @@ export default function App() {
       const q = query(
         usersRef,
         where("email", "==", email),
-        where("password", "==", password)
+        where("password", "==", password),
       );
       const querySnapshot = await getDocs(q);
 
@@ -190,7 +193,7 @@ export default function App() {
         setLeads(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
         setLoading(false);
       },
-      () => setLoading(false)
+      () => setLoading(false),
     );
     return () => unsubscribe();
   }, [user]);
