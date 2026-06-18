@@ -296,7 +296,7 @@ export default function TasksPage() {
             totalPages - 3,
             totalPages - 2,
             totalPages - 1,
-            totalPages
+            totalPages,
           );
         } else {
           pages.push(
@@ -306,7 +306,7 @@ export default function TasksPage() {
             currentPage,
             currentPage + 1,
             "...",
-            totalPages
+            totalPages,
           );
         }
       }
@@ -520,8 +520,8 @@ export default function TasksPage() {
                       isMissed
                         ? "bg-orange-50/40"
                         : isUrgent
-                        ? "bg-rose-50/30"
-                        : ""
+                          ? "bg-rose-50/30"
+                          : ""
                     }`}
                   >
                     <td className="p-5">
@@ -540,8 +540,8 @@ export default function TasksPage() {
                           isMissed
                             ? "text-orange-600"
                             : isUrgent
-                            ? "text-rose-600"
-                            : "text-blue-600"
+                              ? "text-rose-600"
+                              : "text-blue-600"
                         }`}
                       >
                         <Clock size={12} />
@@ -760,8 +760,8 @@ const MobileTaskCard = ({
         isMissed
           ? "border-orange-200 bg-orange-50/30"
           : isUrgent
-          ? "border-rose-200 bg-rose-50/30"
-          : "border-slate-100"
+            ? "border-rose-200 bg-rose-50/30"
+            : "border-slate-100"
       }`}
     >
       {/* Badges */}
@@ -832,8 +832,8 @@ const MobileTaskCard = ({
               isMissed
                 ? "text-orange-600"
                 : isUrgent
-                ? "text-rose-600"
-                : "text-blue-600"
+                  ? "text-rose-600"
+                  : "text-blue-600"
             }
           />
           <span
@@ -841,8 +841,8 @@ const MobileTaskCard = ({
               isMissed
                 ? "text-orange-700"
                 : isUrgent
-                ? "text-rose-700"
-                : "text-blue-700"
+                  ? "text-rose-700"
+                  : "text-blue-700"
             }`}
           >
             {isMissed ? "לא הספקתי! " : isUrgent ? "דחוף! " : ""}שיחה חוזרת:{" "}
@@ -853,9 +853,15 @@ const MobileTaskCard = ({
 
       {/* Contact Info */}
       <div className="space-y-2 mb-3">
-        <div className="flex items-center gap-2 text-sm">
+        <div
+          className="flex items-center gap-2 text-sm w-fit cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (lead.phone) window.location.href = `tel:${lead.phone}`;
+          }}
+        >
           <Phone size={14} className="text-pink-400" />
-          <span className="font-bold text-slate-700">
+          <span className="font-bold text-pink-600 underline decoration-pink-200">
             {lead.phone || "חסר"}
           </span>
         </div>
@@ -1077,22 +1083,19 @@ const QuickEditModal = ({ lead, onSave, onClose, onOpenPayments }) => {
               <div className="space-y-3">
                 <SectionTitle icon={<User size={12} />} title="פרטי קשר" />
                 <div className="space-y-2.5">
-                  {/* שם + טלפון באותה שורה */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <InputField
-                      label="שם *"
-                      value={formData.name}
-                      onChange={(v) => setFormData({ ...formData, name: v })}
-                      placeholder="שם מלא"
-                    />
-                    <InputField
-                      label="טלפון *"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(v) => setFormData({ ...formData, phone: v })}
-                      placeholder="05XXXXXXXX"
-                    />
-                  </div>
+                  <InputField
+                    label="שם *"
+                    value={formData.name}
+                    onChange={(v) => setFormData({ ...formData, name: v })}
+                    placeholder="שם מלא"
+                  />
+                  <InputField
+                    label="טלפון *"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(v) => setFormData({ ...formData, phone: v })}
+                    placeholder="05XXXXXXXX"
+                  />
                   <InputField
                     label="מייל"
                     value={formData.email}

@@ -337,7 +337,7 @@ export default function LeadsPage() {
             totalPages - 3,
             totalPages - 2,
             totalPages - 1,
-            totalPages
+            totalPages,
           );
         } else {
           pages.push(
@@ -347,7 +347,7 @@ export default function LeadsPage() {
             currentPage,
             currentPage + 1,
             "...",
-            totalPages
+            totalPages,
           );
         }
       }
@@ -928,9 +928,17 @@ const MobileLeadCard = ({
 
     {/* Contact Info */}
     <div className="space-y-2 mb-3">
-      <div className="flex items-center gap-2 text-sm">
+      <div
+        className="flex items-center gap-2 text-sm w-fit cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation();
+          if (lead.phone) window.location.href = `tel:${lead.phone}`;
+        }}
+      >
         <Phone size={14} className="text-pink-400 flex-shrink-0" />
-        <span className="font-bold text-slate-700">{lead.phone || "חסר"}</span>
+        <span className="font-bold text-pink-600 underline decoration-pink-200">
+          {lead.phone || "חסר"}
+        </span>
       </div>
       {lead.email && (
         <div className="flex items-center gap-2 text-xs">
@@ -1182,22 +1190,19 @@ const LeadModal = ({ lead, onSave, onClose, error, onOpenPayments }) => {
               <div className="space-y-3">
                 <SectionTitle icon={<User size={12} />} title="פרטי קשר" />
                 <div className="space-y-2.5">
-                  {/* שם + טלפון באותה שורה */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <InputField
-                      label="שם *"
-                      value={formData.name}
-                      onChange={(v) => setFormData({ ...formData, name: v })}
-                      placeholder="שם מלא"
-                    />
-                    <InputField
-                      label="טלפון *"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(v) => setFormData({ ...formData, phone: v })}
-                      placeholder="05XXXXXXXX"
-                    />
-                  </div>
+                  <InputField
+                    label="שם *"
+                    value={formData.name}
+                    onChange={(v) => setFormData({ ...formData, name: v })}
+                    placeholder="שם מלא"
+                  />
+                  <InputField
+                    label="טלפון *"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(v) => setFormData({ ...formData, phone: v })}
+                    placeholder="05XXXXXXXX"
+                  />
                   <InputField
                     label="מייל"
                     value={formData.email}
@@ -1421,9 +1426,10 @@ const InputField = ({
       <input
         type={type}
         placeholder={placeholder}
-        className={`w-full p-2.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-lg outline-none font-bold text-slate-800 text-sm transition-all ${
-          icon ? "pl-9" : ""
-        }`}
+        dir={type === "tel" ? "ltr" : undefined}
+        className={`w-full px-2 py-2.5 bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-lg outline-none font-bold text-slate-800 text-sm transition-all ${
+          type === "tel" ? "text-right" : ""
+        } ${icon ? "pl-9" : ""}`}
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
       />
