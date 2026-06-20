@@ -1194,17 +1194,33 @@ const DateRangePicker = ({ value, onChange, onApply, active }) => {
   const [selectingEnd, setSelectingEnd] = useState(false);
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [viewYear, setViewYear] = useState(today.getFullYear());
+  const [popupPos, setPopupPos] = useState({ top: 0, left: 0, width: 320 });
+  const triggerRef = useRef(null);
   const popupRef = useRef(null);
 
   useEffect(() => {
     if (!isOpen) return;
     const handleClick = (e) => {
-      if (popupRef.current && !popupRef.current.contains(e.target)) {
+      if (
+        popupRef.current && !popupRef.current.contains(e.target) &&
+        triggerRef.current && !triggerRef.current.contains(e.target)
+      ) {
         setIsOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const popupWidth = Math.min(640, vw - 16);
+    let left = rect.left;
+    if (left + popupWidth > vw - 8) left = vw - popupWidth - 8;
+    if (left < 8) left = 8;
+    setPopupPos({ top: rect.bottom + 8, left, width: popupWidth });
   }, [isOpen]);
 
   const navMonth = (dir) => {
@@ -1366,8 +1382,9 @@ const DateRangePicker = ({ value, onChange, onApply, active }) => {
   };
 
   return (
-    <div className="relative" ref={popupRef}>
+    <div className="relative">
       <button
+        ref={triggerRef}
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-1.5 px-3 lg:px-4 py-2 rounded-lg font-black text-xs lg:text-sm transition-all active:scale-95 ${
           active
@@ -1383,8 +1400,9 @@ const DateRangePicker = ({ value, onChange, onApply, active }) => {
 
       {isOpen && (
         <div
-          className="absolute top-full mt-2 z-50 bg-white rounded-2xl shadow-2xl shadow-slate-200/80 border border-slate-100 overflow-hidden"
-          style={{ left: 0, width: "min(640px, calc(100vw - 16px))" }}
+          ref={popupRef}
+          className="fixed z-50 bg-white rounded-2xl shadow-2xl shadow-slate-200/80 border border-slate-100 overflow-hidden"
+          style={{ top: popupPos.top, left: popupPos.left, width: popupPos.width }}
         >
           {/* Header */}
           <div className="bg-gradient-to-l from-pink-500 to-rose-500 px-5 py-4 text-white">

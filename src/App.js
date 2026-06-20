@@ -303,8 +303,8 @@ export default function App() {
         {/* Mobile Header */}
         <header className="lg:hidden fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-pink-100/50 shadow-sm z-50">
           <div className="flex items-center justify-between px-4 py-3.5">
-            <div>
-              <h1 className="text-xl font-black tracking-tight italic bg-gradient-to-l from-pink-600 to-rose-500 bg-clip-text text-transparent">
+            <div className="overflow-visible">
+              <h1 className="text-xl font-black tracking-tight italic bg-gradient-to-l from-pink-600 to-rose-500 bg-clip-text text-transparent px-0.5 pb-0.5">
                 SHIRSHIZ
               </h1>
               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
