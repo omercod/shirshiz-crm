@@ -15,9 +15,10 @@ import {
   User,
   MessageCircle,
   MapPin,
-  Calendar,
   Info,
   Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useAppContext, STATUSES, SOURCES, EVENT_TYPES } from "./App";
 import PaymentsModal from "./PaymentsModal";
@@ -41,7 +42,6 @@ export default function LeadsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [timeFilter, setTimeFilter] = useState("all");
   const [customDateRange, setCustomDateRange] = useState({ from: "", to: "" });
-  const [showCustomPicker, setShowCustomPicker] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLead, setEditingLead] = useState(null);
   const [formError, setFormError] = useState("");
@@ -416,7 +416,7 @@ export default function LeadsPage() {
       <header className="flex flex-col gap-4 mb-6 mt-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
           <div>
-            <h2 className="text-2xl lg:text-3xl font-black text-slate-800">
+            <h2 className="text-2xl lg:text-3xl font-black bg-gradient-to-l from-pink-600 to-rose-500 bg-clip-text text-transparent">
               לידים ולקוחות
             </h2>
             <p className="text-slate-400 font-bold text-xs lg:text-sm">
@@ -434,10 +434,7 @@ export default function LeadsPage() {
             ].map((opt) => (
               <button
                 key={opt.val}
-                onClick={() => {
-                  setTimeFilter(opt.val);
-                  setShowCustomPicker(false);
-                }}
+                onClick={() => setTimeFilter(opt.val)}
                 className={`px-3 lg:px-4 py-2 rounded-lg font-black text-xs lg:text-sm transition-all active:scale-95 ${
                   timeFilter === opt.val
                     ? "bg-pink-600 text-white shadow-lg"
@@ -447,142 +444,61 @@ export default function LeadsPage() {
                 {opt.label}
               </button>
             ))}
-            <button
-              onClick={() => {
-                setTimeFilter("custom");
-                setShowCustomPicker(!showCustomPicker);
-              }}
-              className={`flex items-center gap-1.5 px-3 lg:px-4 py-2 rounded-lg font-black text-xs lg:text-sm transition-all active:scale-95 ${
-                timeFilter === "custom"
-                  ? "bg-pink-600 text-white shadow-lg"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
-            >
-              <Calendar size={14} />
-              מותאם אישית
-            </button>
+            <DateRangePicker
+              value={customDateRange}
+              onChange={setCustomDateRange}
+              onApply={() => setTimeFilter("custom")}
+              active={timeFilter === "custom"}
+            />
           </div>
         </div>
-
-        {/* Custom Date Picker */}
-        {showCustomPicker && (
-          <div className="bg-white p-4 rounded-xl border shadow-sm animate-in slide-in-from-top-2 duration-200">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1">
-                <label className="text-xs font-black text-slate-500 mb-2 block">
-                  מתאריך
-                </label>
-                <input
-                  type="date"
-                  value={customDateRange.from}
-                  onChange={(e) =>
-                    setCustomDateRange({
-                      ...customDateRange,
-                      from: e.target.value,
-                    })
-                  }
-                  className="w-full p-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg outline-none font-bold text-sm focus:border-pink-400"
-                />
-              </div>
-              <div className="flex-1">
-                <label className="text-xs font-black text-slate-500 mb-2 block">
-                  עד תאריך
-                </label>
-                <input
-                  type="date"
-                  value={customDateRange.to}
-                  onChange={(e) =>
-                    setCustomDateRange({
-                      ...customDateRange,
-                      to: e.target.value,
-                    })
-                  }
-                  className="w-full p-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg outline-none font-bold text-sm focus:border-pink-400"
-                />
-              </div>
-              <button
-                onClick={() => {
-                  if (customDateRange.from && customDateRange.to) {
-                    setShowCustomPicker(false);
-                  }
-                }}
-                disabled={!customDateRange.from || !customDateRange.to}
-                className="mt-7 px-4 py-2.5 bg-pink-600 text-white rounded-lg font-black hover:bg-pink-700 disabled:bg-slate-300 transition-all text-sm"
-              >
-                הצג
-              </button>
-            </div>
-            {customDateRange.from && customDateRange.to && (
-              <div className="mt-3 text-xs font-bold text-slate-500 text-center">
-                מציג: {formatIsraeliDate(customDateRange.from)} -{" "}
-                {formatIsraeliDate(customDateRange.to)}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Add Lead Button - Mobile */}
-        <button
-          onClick={() => {
-            setEditingLead(newLeadTemplate);
-            setIsModalOpen(true);
-          }}
-          className="md:hidden bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-xl shadow-xl font-black flex items-center justify-center gap-2 transition-all active:scale-95 text-sm"
-        >
-          <Plus size={20} /> הוספת ליד
-        </button>
       </header>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-6">
-        <div className="bg-blue-50 p-3 lg:p-4 rounded-xl border border-blue-100">
-          <div className="text-xs lg:text-sm font-black uppercase opacity-80 mb-1 text-blue-600">
-            סה״כ לידים
+        <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-md hover:shadow-lg transition-all group">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2.5 bg-blue-100 rounded-xl text-blue-600 group-hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <span className="text-[10px] font-black text-blue-400 uppercase tracking-wider">סה"כ</span>
           </div>
-          <div className="text-xl lg:text-3xl font-black text-blue-600">
-            {filteredByTime.length}
-          </div>
+          <div className="text-2xl lg:text-3xl font-black text-slate-800">{filteredByTime.length}</div>
+          <div className="text-xs text-slate-400 font-bold mt-1">לידים</div>
         </div>
-        <div className="bg-blue-50 p-3 lg:p-4 rounded-xl border border-blue-100">
-          <div className="text-xs lg:text-sm font-black uppercase opacity-80 mb-1 text-blue-600">
-            חדש
+        <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-md hover:shadow-lg transition-all group">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2.5 bg-sky-100 rounded-xl text-sky-600 group-hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <span className="text-[10px] font-black text-sky-400 uppercase tracking-wider">חדש</span>
           </div>
-          <div className="text-xl lg:text-3xl font-black text-blue-600">
-            {filteredByTime.filter((l) => l.status === 1).length}
-          </div>
+          <div className="text-2xl lg:text-3xl font-black text-slate-800">{filteredByTime.filter((l) => l.status === 1).length}</div>
+          <div className="text-xs text-slate-400 font-bold mt-1">ממתינים לטיפול</div>
         </div>
-        <div className="bg-amber-50 p-3 lg:p-4 rounded-xl border border-amber-100">
-          <div className="text-xs lg:text-sm font-black uppercase opacity-80 mb-1 text-amber-600">
-            בתהליך
+        <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-md hover:shadow-lg transition-all group">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2.5 bg-amber-100 rounded-xl text-amber-600 group-hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            </div>
+            <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider">בתהליך</span>
           </div>
-          <div className="text-xl lg:text-3xl font-black text-amber-600">
-            {filteredByTime.filter((l) => l.status === 2).length}
-          </div>
+          <div className="text-2xl lg:text-3xl font-black text-slate-800">{filteredByTime.filter((l) => l.status === 2).length}</div>
+          <div className="text-xs text-slate-400 font-bold mt-1">בשלב משא ומתן</div>
         </div>
-        <div className="bg-emerald-50 p-3 lg:p-4 rounded-xl border border-emerald-100">
-          <div className="text-xs lg:text-sm font-black uppercase opacity-80 mb-1 text-emerald-600">
-            נסגר
+        <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-md hover:shadow-lg transition-all group">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2.5 bg-emerald-100 rounded-xl text-emerald-600 group-hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider">נסגר</span>
           </div>
-          <div className="text-xl lg:text-3xl font-black text-emerald-600">
-            {filteredByTime.filter((l) => l.status === 3).length}
-          </div>
+          <div className="text-2xl lg:text-3xl font-black text-slate-800">{filteredByTime.filter((l) => l.status === 3).length}</div>
+          <div className="text-xs text-slate-400 font-bold mt-1">עסקאות שנסגרו</div>
         </div>
       </div>
 
-      {/* Add Lead Button - Desktop Only */}
-      <div className="hidden md:flex justify-end mb-4">
-        <button
-          onClick={() => {
-            setEditingLead(newLeadTemplate);
-            setIsModalOpen(true);
-          }}
-          className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-4 rounded-2xl shadow-xl font-black flex items-center gap-2 transition-all active:scale-95"
-        >
-          <Plus size={20} /> הוספת ליד
-        </button>
-      </div>
-
-      {/* Filters */}
+      {/* Filters + Add Button */}
       <div className="flex flex-col sm:flex-row gap-2 lg:gap-3 items-stretch sm:items-center bg-white p-3 rounded-xl lg:rounded-2xl border shadow-sm">
         <div className="relative flex-1">
           <Search
@@ -612,6 +528,15 @@ export default function LeadsPage() {
             ))}
           </select>
         </div>
+        <button
+          onClick={() => {
+            setEditingLead(newLeadTemplate);
+            setIsModalOpen(true);
+          }}
+          className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-5 py-2.5 lg:py-3 rounded-lg lg:rounded-xl shadow-md shadow-pink-200 hover:shadow-lg hover:shadow-pink-300 font-black flex items-center justify-center gap-2 transition-all active:scale-95 hover:-translate-y-0.5 text-sm whitespace-nowrap"
+        >
+          <Plus size={18} /> הוספת ליד
+        </button>
       </div>
 
       {/* Desktop Table */}
@@ -659,10 +584,23 @@ export default function LeadsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {sortedAndFilteredLeads.map((lead) => (
+              {sortedAndFilteredLeads.map((lead) => {
+                const statusRowBg = {
+                  1: "hover:bg-blue-50/40",
+                  2: "hover:bg-amber-50/40",
+                  3: "hover:bg-emerald-50/40",
+                  4: "hover:bg-rose-50/30",
+                }[lead.status] || "hover:bg-slate-50/50";
+                const avatarColors = {
+                  1: "bg-blue-100 text-blue-700",
+                  2: "bg-amber-100 text-amber-700",
+                  3: "bg-emerald-100 text-emerald-700",
+                  4: "bg-rose-100 text-rose-700",
+                }[lead.status] || "bg-pink-100 text-pink-700";
+                return (
                 <tr
                   key={lead.id}
-                  className="hover:bg-slate-50/50 transition-colors group"
+                  className={`transition-colors duration-150 group ${statusRowBg}`}
                 >
                   <td className="p-5">
                     <div className="font-bold text-slate-400">
@@ -684,16 +622,19 @@ export default function LeadsPage() {
                     />
                   </td>
                   <td className="p-5">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-8 h-8 rounded-full ${avatarColors} font-black text-xs flex items-center justify-center flex-shrink-0`}>
+                        {(lead.name || "?")[0]}
+                      </div>
                       <button
                         onClick={() => {
                           setEditingLead(lead);
                           setIsModalOpen(true);
                         }}
-                        className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors active:scale-95 flex-shrink-0"
+                        className="p-1 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors active:scale-95 flex-shrink-0"
                         title="מידע מלא"
                       >
-                        <Info size={16} />
+                        <Info size={14} />
                       </button>
                       <div className="font-black text-slate-800 text-base">
                         {lead.name || "ללא שם"}
@@ -787,7 +728,8 @@ export default function LeadsPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>
@@ -1118,6 +1060,250 @@ const EventTypeDropdown = ({
               {typeKey}
             </button>
           ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Date Range Picker (Booking.com style) ───────────────────────────────────
+
+const HEBREW_MONTHS = [
+  "ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני",
+  "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר",
+];
+const WEEK_DAYS = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"];
+
+const toDateStr = (y, m, d) =>
+  `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+
+const DateRangePicker = ({ value, onChange, onApply, active }) => {
+  const today = new Date();
+  const [isOpen, setIsOpen] = useState(false);
+  const [tempFrom, setTempFrom] = useState(value.from || "");
+  const [tempTo, setTempTo] = useState(value.to || "");
+  const [hoverDate, setHoverDate] = useState(null);
+  const [selectingEnd, setSelectingEnd] = useState(false);
+  const [viewMonth, setViewMonth] = useState(today.getMonth());
+  const [viewYear, setViewYear] = useState(today.getFullYear());
+  const popupRef = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClick = (e) => {
+      if (popupRef.current && !popupRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [isOpen]);
+
+  const navMonth = (dir) => {
+    let m = viewMonth + dir;
+    let y = viewYear;
+    if (m < 0) { m = 11; y--; }
+    if (m > 11) { m = 0; y++; }
+    setViewMonth(m);
+    setViewYear(y);
+  };
+
+  const handleDayClick = (dateStr) => {
+    if (!tempFrom || (!selectingEnd && tempFrom)) {
+      setTempFrom(dateStr);
+      setTempTo("");
+      setSelectingEnd(true);
+    } else {
+      const from = tempFrom <= dateStr ? tempFrom : dateStr;
+      const to = tempFrom <= dateStr ? dateStr : tempFrom;
+      setTempTo(to);
+      setTempFrom(from);
+      setSelectingEnd(false);
+    }
+  };
+
+  const getEffectiveRange = () => {
+    const from = tempFrom;
+    const to = selectingEnd && hoverDate
+      ? (tempFrom <= hoverDate ? hoverDate : tempFrom)
+      : tempTo;
+    const actualFrom = selectingEnd && hoverDate && hoverDate < tempFrom ? hoverDate : from;
+    return { from: actualFrom, to };
+  };
+
+  const renderMonth = (year, month) => {
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const { from: rFrom, to: rTo } = getEffectiveRange();
+
+    const cells = [];
+    for (let i = 0; i < firstDay; i++) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+    while (cells.length % 7 !== 0) cells.push(null);
+
+    return (
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-3 px-1">
+          <button
+            onClick={() => navMonth(-1)}
+            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
+          >
+            <ChevronRight size={16} />
+          </button>
+          <span className="text-sm font-black text-slate-700">
+            {HEBREW_MONTHS[month]} {year}
+          </span>
+          <button
+            onClick={() => navMonth(1)}
+            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
+          >
+            <ChevronLeft size={16} />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-7 mb-1">
+          {WEEK_DAYS.map((d) => (
+            <div key={d} className="text-center text-[10px] font-black text-slate-400 py-1">
+              {d}
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-7">
+          {cells.map((day, idx) => {
+            if (!day) return <div key={`e-${idx}`} />;
+            const dateStr = toDateStr(year, month, day);
+            const isStart = dateStr === rFrom;
+            const isEnd = dateStr === rTo;
+            const inRange = rFrom && rTo && dateStr > rFrom && dateStr < rTo;
+            const todayStr = toDateStr(today.getFullYear(), today.getMonth(), today.getDate());
+            const isToday = dateStr === todayStr;
+            const isFuture = dateStr > todayStr;
+
+            let dayClass = "relative flex items-center justify-center h-9 text-sm font-bold cursor-pointer select-none transition-all ";
+
+            if (isStart || isEnd) {
+              dayClass += "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md z-10 ";
+              dayClass += isStart ? "rounded-r-full " : "rounded-l-full ";
+            } else if (inRange) {
+              dayClass += "bg-pink-50 text-pink-700 ";
+            } else if (isFuture) {
+              dayClass += "text-slate-300 cursor-not-allowed ";
+            } else {
+              dayClass += "text-slate-700 hover:bg-pink-100 rounded-full ";
+            }
+
+            if (isToday && !isStart && !isEnd) {
+              dayClass += "ring-2 ring-pink-300 ring-inset rounded-full ";
+            }
+
+            return (
+              <div
+                key={dateStr}
+                className={dayClass}
+                onClick={() => !isFuture && handleDayClick(dateStr)}
+                onMouseEnter={() => selectingEnd && setHoverDate(dateStr)}
+                onMouseLeave={() => setHoverDate(null)}
+              >
+                {day}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const nextMonth = viewMonth === 11 ? 0 : viewMonth + 1;
+  const nextYear = viewMonth === 11 ? viewYear + 1 : viewYear;
+
+  const labelFrom = tempFrom ? formatIsraeliDate(tempFrom) : "בחרי תאריך";
+  const labelTo = tempTo ? formatIsraeliDate(tempTo) : selectingEnd ? "בחרי סיום" : "בחרי תאריך";
+
+  const handleApply = () => {
+    if (!tempFrom || !tempTo) return;
+    onChange({ from: tempFrom, to: tempTo });
+    onApply();
+    setIsOpen(false);
+  };
+
+  const handleClear = () => {
+    setTempFrom("");
+    setTempTo("");
+    setSelectingEnd(false);
+    onChange({ from: "", to: "" });
+  };
+
+  return (
+    <div className="relative" ref={popupRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center gap-1.5 px-3 lg:px-4 py-2 rounded-lg font-black text-xs lg:text-sm transition-all active:scale-95 ${
+          active
+            ? "bg-pink-600 text-white shadow-lg"
+            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+        }`}
+      >
+        <CalendarIcon size={14} />
+        {active && tempFrom && tempTo
+          ? `${formatIsraeliDate(tempFrom)} – ${formatIsraeliDate(tempTo)}`
+          : "מותאם אישית"}
+      </button>
+
+      {isOpen && (
+        <div
+          className="absolute top-full mt-2 z-50 bg-white rounded-2xl shadow-2xl shadow-slate-200/80 border border-slate-100 overflow-hidden"
+          style={{ left: 0, width: "min(640px, calc(100vw - 16px))" }}
+        >
+          {/* Header */}
+          <div className="bg-gradient-to-l from-pink-500 to-rose-500 px-5 py-4 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold opacity-80 mb-1">
+                  {selectingEnd ? "בחרי תאריך סיום" : "בחרי תאריך התחלה"}
+                </p>
+                <div className="flex items-center gap-2 text-sm font-black">
+                  <span className="bg-white/20 rounded-lg px-3 py-1">{labelFrom}</span>
+                  <span className="opacity-60">→</span>
+                  <span className={`rounded-lg px-3 py-1 ${tempTo ? "bg-white/20" : "bg-white/10 opacity-60"}`}>
+                    {labelTo}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Calendar Grid */}
+          <div className="p-4 flex gap-4">
+            {renderMonth(viewYear, viewMonth)}
+            <div className="w-px bg-slate-100 hidden sm:block" />
+            <div className="hidden sm:block flex-1 min-w-0">
+              {renderMonth(nextYear, nextMonth)}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-slate-50/50">
+            <button
+              onClick={handleClear}
+              className="text-xs font-black text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              נקה
+            </button>
+            <button
+              onClick={handleApply}
+              disabled={!tempFrom || !tempTo}
+              className="px-5 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-black rounded-xl shadow-md shadow-pink-200 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:translate-y-0 disabled:shadow-none"
+            >
+              הצג תוצאות
+            </button>
+          </div>
         </div>
       )}
     </div>

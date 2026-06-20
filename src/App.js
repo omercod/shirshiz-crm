@@ -111,6 +111,13 @@ export const useAppContext = () => {
   return context;
 };
 
+// Suppress Firebase internal abort errors in development overlay
+if (typeof window !== "undefined") {
+  window.addEventListener("unhandledrejection", (e) => {
+    if (e.reason?.message?.includes("aborted a request")) e.preventDefault();
+  });
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState("leads");
   const [leads, setLeads] = useState([]);
@@ -128,11 +135,20 @@ export default function App() {
     document.head.appendChild(link);
   }, []);
 
-  // Check if user is authenticated (from localStorage)
+  // Check if user is authenticated (from localStorage) - auto-logout after 7 days
   useEffect(() => {
+    const SESSION_DAYS = 7;
     const authUser = localStorage.getItem("shirshiz_auth");
-    if (authUser) {
-      setIsAuthenticated(true);
+    const loginTime = localStorage.getItem("shirshiz_login_time");
+    if (authUser && loginTime) {
+      const elapsed = Date.now() - Number(loginTime);
+      const expired = elapsed > SESSION_DAYS * 24 * 60 * 60 * 1000;
+      if (expired) {
+        localStorage.removeItem("shirshiz_auth");
+        localStorage.removeItem("shirshiz_login_time");
+      } else {
+        setIsAuthenticated(true);
+      }
     }
     setAuthChecking(false);
   }, []);
@@ -151,6 +167,7 @@ export default function App() {
       if (!querySnapshot.empty) {
         const userData = querySnapshot.docs[0].data();
         localStorage.setItem("shirshiz_auth", JSON.stringify(userData));
+        localStorage.setItem("shirshiz_login_time", Date.now().toString());
         setIsAuthenticated(true);
         return true;
       }
@@ -164,6 +181,7 @@ export default function App() {
   // Logout function
   const handleLogout = () => {
     localStorage.removeItem("shirshiz_auth");
+    localStorage.removeItem("shirshiz_login_time");
     setIsAuthenticated(false);
   };
 
@@ -283,10 +301,10 @@ export default function App() {
         dir="rtl"
       >
         {/* Mobile Header */}
-        <header className="lg:hidden fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm z-50">
+        <header className="lg:hidden fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-pink-100/50 shadow-sm z-50">
           <div className="flex items-center justify-between px-4 py-3.5">
             <div>
-              <h1 className="text-xl font-black text-pink-600 tracking-tight italic">
+              <h1 className="text-xl font-black tracking-tight italic bg-gradient-to-l from-pink-600 to-rose-500 bg-clip-text text-transparent">
                 SHIRSHIZ
               </h1>
               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
@@ -296,11 +314,11 @@ export default function App() {
             <div className="flex items-center gap-3">
               <button
                 onClick={handleLogout}
-                className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-full font-bold transition-all active:scale-95"
+                className="text-xs bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-500 px-3 py-1.5 rounded-full font-bold transition-all active:scale-95"
               >
                 יציאה
               </button>
-              <span className="text-xs bg-pink-100 text-pink-700 px-3 py-1.5 rounded-full font-bold">
+              <span className="text-xs bg-gradient-to-l from-pink-500 to-rose-500 text-white px-3 py-1.5 rounded-full font-black shadow-sm shadow-pink-200">
                 {leads.length}
               </span>
             </div>
@@ -308,22 +326,22 @@ export default function App() {
         </header>
 
         {/* Desktop Sidebar */}
-        <aside className="fixed inset-y-0 right-0 w-64 bg-white border-l border-slate-200 z-30 hidden lg:block">
-          <div className="p-8 text-center border-b border-slate-50">
-            <h1 className="text-3xl font-black text-pink-600 tracking-tighter italic">
+        <aside className="fixed inset-y-0 right-0 w-64 bg-gradient-to-b from-pink-600 via-pink-600 to-rose-700 z-30 hidden lg:block shadow-2xl shadow-pink-900/20">
+          <div className="p-8 text-center border-b border-white/10">
+            <h1 className="text-3xl font-black text-white tracking-tighter italic drop-shadow-sm">
               SHIRSHIZ
             </h1>
-            <p className="text-[9px] text-slate-400 mt-1 font-bold uppercase tracking-widest">
+            <p className="text-[9px] text-white/50 mt-1 font-bold uppercase tracking-widest">
               Management v4.5
             </p>
             <button
               onClick={handleLogout}
-              className="mt-4 w-full bg-slate-100 hover:bg-slate-200 text-slate-600 py-2 px-4 rounded-xl font-bold text-sm transition-all active:scale-95"
+              className="mt-4 w-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white py-2 px-4 rounded-xl font-bold text-sm transition-all active:scale-95 border border-white/10"
             >
               יציאה
             </button>
           </div>
-          <nav className="mt-6 px-4 space-y-2">
+          <nav className="mt-4 px-4 space-y-1">
             <SidebarItem
               active={activeTab === "leads"}
               onClick={() => setActiveTab("leads")}
@@ -351,13 +369,17 @@ export default function App() {
           </nav>
 
           {/* Desktop Stats Footer */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-slate-100 bg-slate-50/50">
+          <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-white/10">
             <div className="text-center">
-              <p className="text-xs font-black text-slate-600">סה"כ לידים</p>
-              <p className="text-2xl font-black text-pink-600 mt-1">
+              <p className="text-xs font-black text-white/50 uppercase tracking-wider">
+                סה"כ לידים
+              </p>
+              <p className="text-3xl font-black text-white mt-1 drop-shadow-sm">
                 {leads.length}
               </p>
-              <p className="text-[9px] text-slate-400 mt-2">© 2025 SHIRSHIZ</p>
+              <p className="text-[9px] text-white/30 mt-2 font-bold">
+                © 2025 SHIRSHIZ
+              </p>
             </div>
           </div>
         </aside>
@@ -408,13 +430,21 @@ export default function App() {
 const SidebarItem = ({ active, onClick, icon, label }) => (
   <button
     onClick={onClick}
-    className={`w-full flex items-center gap-3 px-5 py-4 rounded-2xl transition-all ${
+    className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all duration-200 ${
       active
-        ? "bg-pink-600 text-white shadow-lg shadow-pink-100"
-        : "text-slate-500 hover:bg-slate-50 font-semibold"
+        ? "bg-white/20 text-white shadow-sm backdrop-blur-sm"
+        : "text-white/60 hover:bg-white/10 hover:text-white"
     }`}
   >
-    {icon} <span className="font-bold">{label}</span>
+    <span
+      className={`transition-transform duration-200 ${active ? "scale-110" : ""}`}
+    >
+      {icon}
+    </span>
+    <span className="font-bold">{label}</span>
+    {active && (
+      <div className="mr-auto w-1.5 h-1.5 rounded-full bg-white/80"></div>
+    )}
   </button>
 );
 
@@ -426,18 +456,20 @@ const MobileNavItem = ({ active, onClick, icon, label }) => (
       active ? "text-pink-600" : "text-slate-400"
     }`}
   >
-    <span className={`transition-transform ${active ? "scale-110" : ""}`}>
+    <span
+      className={`transition-all duration-200 ${active ? "scale-110 drop-shadow-sm" : ""}`}
+    >
       {icon}
     </span>
     <span
-      className={`text-[10px] font-bold ${
+      className={`text-[10px] font-bold transition-all duration-200 ${
         active ? "text-pink-600" : "text-slate-500"
       }`}
     >
       {label}
     </span>
     {active && (
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-pink-600 rounded-t-full"></div>
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-0.5 bg-gradient-to-r from-pink-400 to-rose-500 rounded-t-full"></div>
     )}
   </button>
 );

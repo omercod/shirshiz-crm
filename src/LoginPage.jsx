@@ -42,8 +42,9 @@ export default function LoginPage({ onLogin }) {
     >
       {/* Background Decorations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-20 w-72 h-72 bg-[#F2B1AD] rounded-full opacity-30 blur-3xl"></div>
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-white rounded-full opacity-20 blur-3xl"></div>
+        <div className="absolute top-20 right-20 w-72 h-72 bg-[#F2B1AD] rounded-full opacity-30 blur-3xl animate-[float_7s_ease-in-out_infinite]"></div>
+        <div className="absolute bottom-20 left-20 w-96 h-96 bg-white rounded-full opacity-20 blur-3xl animate-[float_9s_ease-in-out_infinite_reverse]"></div>
+        <div className="absolute top-1/2 left-1/3 w-48 h-48 bg-[#E8A19D] rounded-full opacity-15 blur-2xl animate-[float_11s_ease-in-out_infinite_1s]"></div>
       </div>
 
       {/* Login Card */}
@@ -69,9 +70,12 @@ export default function LoginPage({ onLogin }) {
               </div>
             </div>
 
-            <h1 className="text-3xl font-black text-slate-800 mb-2">
+            <h1 className="text-3xl font-black text-slate-800 mb-1">
               SHIRSHIZ CRM
             </h1>
+            <p className="text-[11px] text-[#E8A19D] font-black tracking-widest uppercase mb-1">
+              סנדאות • עוגות • יופי
+            </p>
             <p className="text-slate-400 font-bold text-sm">
               מערכת ניהול לקוחות
             </p>

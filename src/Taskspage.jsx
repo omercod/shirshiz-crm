@@ -374,7 +374,7 @@ export default function TasksPage() {
       {/* Header */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 lg:gap-4">
         <div>
-          <h2 className="text-2xl lg:text-3xl font-black text-slate-800">
+          <h2 className="text-2xl lg:text-3xl font-black bg-gradient-to-l from-pink-600 to-rose-500 bg-clip-text text-transparent">
             משימות ופולואפים
           </h2>
           <p className="text-slate-400 font-bold text-xs lg:text-sm">
@@ -382,7 +382,7 @@ export default function TasksPage() {
           </p>
         </div>
         {urgentCount > 0 && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 lg:px-6 py-2 lg:py-3 rounded-xl font-black flex items-center gap-2 text-sm lg:text-base">
+          <div className="bg-gradient-to-r from-rose-50 to-orange-50 border border-rose-200 text-rose-700 px-4 lg:px-6 py-2 lg:py-3 rounded-xl font-black flex items-center gap-2 text-sm lg:text-base shadow-sm shadow-rose-100">
             <AlertCircle size={18} className="lg:hidden" />
             <AlertCircle size={20} className="hidden lg:block" />
             <span className="text-xs lg:text-base">
@@ -425,40 +425,41 @@ export default function TasksPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4">
-        <div className="bg-blue-50 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-blue-100">
-          <div className="text-[10px] lg:text-sm font-bold text-blue-600 mb-1">
-            חדשים
+        <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-md hover:shadow-lg transition-all group">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2.5 bg-sky-100 rounded-xl text-sky-600 group-hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
           </div>
-          <div className="text-xl lg:text-3xl font-black text-blue-700">
-            {allFilteredLeads.filter((l) => Number(l.status) === 1).length}
-          </div>
+          <div className="text-2xl lg:text-3xl font-black text-slate-800">{allFilteredLeads.filter((l) => Number(l.status) === 1).length}</div>
+          <div className="text-xs text-slate-400 font-bold mt-1">חדשים</div>
         </div>
-        <div className="bg-amber-50 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-amber-100">
-          <div className="text-[10px] lg:text-sm font-bold text-amber-600 mb-1">
-            בתהליך
+        <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-md hover:shadow-lg transition-all group">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2.5 bg-amber-100 rounded-xl text-amber-600 group-hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            </div>
           </div>
-          <div className="text-xl lg:text-3xl font-black text-amber-700">
-            {
-              sortedAndFilteredLeads.filter((l) => Number(l.status) === 2)
-                .length
-            }
-          </div>
+          <div className="text-2xl lg:text-3xl font-black text-slate-800">{allFilteredLeads.filter((l) => Number(l.status) === 2).length}</div>
+          <div className="text-xs text-slate-400 font-bold mt-1">בתהליך</div>
         </div>
-        <div className="bg-rose-50 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-rose-100">
-          <div className="text-[10px] lg:text-sm font-bold text-rose-600 mb-1">
-            דחוף (יומיים)
+        <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-md hover:shadow-lg transition-all group">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2.5 bg-rose-100 rounded-xl text-rose-600 group-hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
           </div>
-          <div className="text-xl lg:text-3xl font-black text-rose-700">
-            {urgentCount}
-          </div>
+          <div className="text-2xl lg:text-3xl font-black text-slate-800">{urgentCount}</div>
+          <div className="text-xs text-slate-400 font-bold mt-1">דחוף (יומיים)</div>
         </div>
-        <div className="bg-orange-50 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-orange-100">
-          <div className="text-[10px] lg:text-sm font-bold text-orange-600 mb-1">
-            לא הספקתי
+        <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-md hover:shadow-lg transition-all group">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2.5 bg-orange-100 rounded-xl text-orange-600 group-hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
           </div>
-          <div className="text-xl lg:text-3xl font-black text-orange-700">
-            {missedCount}
-          </div>
+          <div className="text-2xl lg:text-3xl font-black text-slate-800">{missedCount}</div>
+          <div className="text-xs text-slate-400 font-bold mt-1">לא הספקתי</div>
         </div>
       </div>
 

@@ -548,7 +548,7 @@ export default function StatsPage() {
       {/* Header */}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 lg:gap-4">
         <div>
-          <h2 className="text-2xl lg:text-3xl font-black text-slate-800">
+          <h2 className="text-2xl lg:text-3xl font-black bg-gradient-to-l from-pink-600 to-rose-500 bg-clip-text text-transparent">
             סטטיסטיקות ונתונים
           </h2>
           <p className="text-slate-400 font-bold text-xs lg:text-sm">
@@ -1152,16 +1152,16 @@ export default function StatsPage() {
 }
 
 // Stat Card Component
-const StatCard = ({ icon, iconLarge, title, value, color }) => {
-  const colors = {
-    blue: "bg-blue-50 text-blue-600 border-blue-100",
-    emerald: "bg-emerald-50 text-emerald-600 border-emerald-100",
-    pink: "bg-pink-50 text-pink-600 border-pink-100",
-    amber: "bg-amber-50 text-amber-600 border-amber-100",
-    purple: "bg-purple-50 text-purple-600 border-purple-100",
+const StatCard = ({ icon, iconLarge, title, value, color, subtitle }) => {
+  const iconBg = {
+    blue: "bg-blue-100 text-blue-600",
+    emerald: "bg-emerald-100 text-emerald-600",
+    pink: "bg-pink-100 text-pink-600",
+    amber: "bg-amber-100 text-amber-600",
+    purple: "bg-purple-100 text-purple-600",
   };
 
-  const textColors = {
+  const valueColors = {
     blue: "text-blue-700",
     emerald: "text-emerald-700",
     pink: "text-pink-700",
@@ -1170,19 +1170,20 @@ const StatCard = ({ icon, iconLarge, title, value, color }) => {
   };
 
   return (
-    <div
-      className={`${colors[color]} p-3 lg:p-6 rounded-xl lg:rounded-2xl border`}
-    >
-      <div className="mb-2 lg:mb-3">
-        {icon}
-        {iconLarge}
+    <div className="bg-white p-4 lg:p-5 rounded-xl lg:rounded-2xl border border-slate-100 shadow-md hover:shadow-lg transition-all group">
+      <div className="flex items-center justify-between mb-3">
+        <div className={`p-2.5 rounded-xl ${iconBg[color]} group-hover:scale-110 transition-transform`}>
+          <span className="lg:hidden">{icon}</span>
+          <span className="hidden lg:block">{iconLarge}</span>
+        </div>
       </div>
-      <div className="text-[10px] lg:text-sm font-black uppercase mb-1 lg:mb-2 opacity-80">
+      <div className="text-[10px] lg:text-xs font-black uppercase text-slate-400 tracking-wider mb-1">
         {title}
       </div>
-      <div className={`text-xl lg:text-3xl font-black ${textColors[color]}`}>
+      <div className={`text-xl lg:text-3xl font-black ${valueColors[color]}`}>
         {value}
       </div>
+      {subtitle && <div className="text-[10px] text-slate-400 font-bold mt-1">{subtitle}</div>}
     </div>
   );
 };
