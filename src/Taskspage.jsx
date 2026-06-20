@@ -895,18 +895,28 @@ const MobileTaskCard = ({
           ₪{lead.quote || 0}
         </div>
         <div className="flex gap-2">
-          <a
-            href={`https://wa.me/972${lead.phone?.substring(1)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold text-sm active:scale-95 transition-all"
-          >
-            <Phone size={16} />
-            WhatsApp
-          </a>
+          {lead.phone && (
+            <a
+              href={`https://wa.me/972${lead.phone.replace(/^0/, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 bg-emerald-500 text-white px-3 py-2 rounded-xl font-bold text-sm active:scale-95 transition-all"
+            >
+              <MessageCircle size={16} />
+              וואטסאפ
+            </a>
+          )}
+          {lead.phone && (
+            <a
+              href={`tel:${lead.phone}`}
+              className="p-2 bg-blue-50 text-blue-500 rounded-xl transition-colors active:scale-95 flex items-center justify-center"
+            >
+              <Phone size={18} />
+            </a>
+          )}
           <button
             onClick={onEdit}
-            className="p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+            className="p-2 text-slate-500 hover:bg-slate-50 rounded-xl transition-colors active:scale-95"
           >
             <Edit2 size={18} />
           </button>

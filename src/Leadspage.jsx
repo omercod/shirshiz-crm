@@ -459,42 +459,118 @@ export default function LeadsPage() {
         <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-md hover:shadow-lg transition-all group">
           <div className="flex items-center justify-between mb-3">
             <div className="p-2.5 bg-blue-100 rounded-xl text-blue-600 group-hover:scale-110 transition-transform">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
             </div>
-            <span className="text-[10px] font-black text-blue-400 uppercase tracking-wider">סה"כ</span>
+            <span className="text-[10px] font-black text-blue-400 uppercase tracking-wider">
+              סה"כ
+            </span>
           </div>
-          <div className="text-2xl lg:text-3xl font-black text-slate-800">{filteredByTime.length}</div>
+          <div className="text-2xl lg:text-3xl font-black text-slate-800">
+            {filteredByTime.length}
+          </div>
           <div className="text-xs text-slate-400 font-bold mt-1">לידים</div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-md hover:shadow-lg transition-all group">
           <div className="flex items-center justify-between mb-3">
             <div className="p-2.5 bg-sky-100 rounded-xl text-sky-600 group-hover:scale-110 transition-transform">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
             </div>
-            <span className="text-[10px] font-black text-sky-400 uppercase tracking-wider">חדש</span>
+            <span className="text-[10px] font-black text-sky-400 uppercase tracking-wider">
+              חדש
+            </span>
           </div>
-          <div className="text-2xl lg:text-3xl font-black text-slate-800">{filteredByTime.filter((l) => l.status === 1).length}</div>
-          <div className="text-xs text-slate-400 font-bold mt-1">ממתינים לטיפול</div>
+          <div className="text-2xl lg:text-3xl font-black text-slate-800">
+            {filteredByTime.filter((l) => l.status === 1).length}
+          </div>
+          <div className="text-xs text-slate-400 font-bold mt-1">
+            ממתינים לטיפול
+          </div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-md hover:shadow-lg transition-all group">
           <div className="flex items-center justify-between mb-3">
             <div className="p-2.5 bg-amber-100 rounded-xl text-amber-600 group-hover:scale-110 transition-transform">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
             </div>
-            <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider">בתהליך</span>
+            <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider">
+              בתהליך
+            </span>
           </div>
-          <div className="text-2xl lg:text-3xl font-black text-slate-800">{filteredByTime.filter((l) => l.status === 2).length}</div>
-          <div className="text-xs text-slate-400 font-bold mt-1">בשלב משא ומתן</div>
+          <div className="text-2xl lg:text-3xl font-black text-slate-800">
+            {filteredByTime.filter((l) => l.status === 2).length}
+          </div>
+          <div className="text-xs text-slate-400 font-bold mt-1">
+            בשלב משא ומתן
+          </div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-md hover:shadow-lg transition-all group">
           <div className="flex items-center justify-between mb-3">
             <div className="p-2.5 bg-emerald-100 rounded-xl text-emerald-600 group-hover:scale-110 transition-transform">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
             </div>
-            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider">נסגר</span>
+            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider">
+              נסגר
+            </span>
           </div>
-          <div className="text-2xl lg:text-3xl font-black text-slate-800">{filteredByTime.filter((l) => l.status === 3).length}</div>
-          <div className="text-xs text-slate-400 font-bold mt-1">עסקאות שנסגרו</div>
+          <div className="text-2xl lg:text-3xl font-black text-slate-800">
+            {filteredByTime.filter((l) => l.status === 3).length}
+          </div>
+          <div className="text-xs text-slate-400 font-bold mt-1">
+            עסקאות שנסגרו
+          </div>
         </div>
       </div>
 
@@ -585,150 +661,154 @@ export default function LeadsPage() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {sortedAndFilteredLeads.map((lead) => {
-                const statusRowBg = {
-                  1: "hover:bg-blue-50/40",
-                  2: "hover:bg-amber-50/40",
-                  3: "hover:bg-emerald-50/40",
-                  4: "hover:bg-rose-50/30",
-                }[lead.status] || "hover:bg-slate-50/50";
-                const avatarColors = {
-                  1: "bg-blue-100 text-blue-700",
-                  2: "bg-amber-100 text-amber-700",
-                  3: "bg-emerald-100 text-emerald-700",
-                  4: "bg-rose-100 text-rose-700",
-                }[lead.status] || "bg-pink-100 text-pink-700";
+                const statusRowBg =
+                  {
+                    1: "hover:bg-blue-50/40",
+                    2: "hover:bg-amber-50/40",
+                    3: "hover:bg-emerald-50/40",
+                    4: "hover:bg-rose-50/30",
+                  }[lead.status] || "hover:bg-slate-50/50";
+                const avatarColors =
+                  {
+                    1: "bg-blue-100 text-blue-700",
+                    2: "bg-amber-100 text-amber-700",
+                    3: "bg-emerald-100 text-emerald-700",
+                    4: "bg-rose-100 text-rose-700",
+                  }[lead.status] || "bg-pink-100 text-pink-700";
                 return (
-                <tr
-                  key={lead.id}
-                  className={`transition-colors duration-150 group ${statusRowBg}`}
-                >
-                  <td className="p-5">
-                    <div className="font-bold text-slate-400">
-                      {formatIsraeliDate(lead.regDate) || "לא הוזן"}
-                    </div>
-                    {lead.regTime && (
-                      <div className="text-xs text-slate-300 font-semibold mt-0.5">
-                        {lead.regTime}
+                  <tr
+                    key={lead.id}
+                    className={`transition-colors duration-150 group ${statusRowBg}`}
+                  >
+                    <td className="p-5">
+                      <div className="font-bold text-slate-400">
+                        {formatIsraeliDate(lead.regDate) || "לא הוזן"}
                       </div>
-                    )}
-                  </td>
-                  <td className="p-5">
-                    <StatusDropdown
-                      lead={lead}
-                      statusDropdownOpen={statusDropdownOpen}
-                      setStatusDropdownOpen={setStatusDropdownOpen}
-                      handleQuickStatusChange={handleQuickStatusChange}
-                      getDropdownPosition={getDropdownPosition}
-                    />
-                  </td>
-                  <td className="p-5">
-                    <div className="flex items-center gap-2.5">
-                      <div className={`w-8 h-8 rounded-full ${avatarColors} font-black text-xs flex items-center justify-center flex-shrink-0`}>
-                        {(lead.name || "?")[0]}
+                      {lead.regTime && (
+                        <div className="text-xs text-slate-300 font-semibold mt-0.5">
+                          {lead.regTime}
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-5">
+                      <StatusDropdown
+                        lead={lead}
+                        statusDropdownOpen={statusDropdownOpen}
+                        setStatusDropdownOpen={setStatusDropdownOpen}
+                        handleQuickStatusChange={handleQuickStatusChange}
+                        getDropdownPosition={getDropdownPosition}
+                      />
+                    </td>
+                    <td className="p-5">
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className={`w-8 h-8 rounded-full ${avatarColors} font-black text-xs flex items-center justify-center flex-shrink-0`}
+                        >
+                          {(lead.name || "?")[0]}
+                        </div>
+                        <button
+                          onClick={() => {
+                            setEditingLead(lead);
+                            setIsModalOpen(true);
+                          }}
+                          className="p-1 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors active:scale-95 flex-shrink-0"
+                          title="מידע מלא"
+                        >
+                          <Info size={14} />
+                        </button>
+                        <div className="font-black text-slate-800 text-base">
+                          {lead.name || "ללא שם"}
+                        </div>
                       </div>
-                      <button
-                        onClick={() => {
-                          setEditingLead(lead);
-                          setIsModalOpen(true);
-                        }}
-                        className="p-1 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors active:scale-95 flex-shrink-0"
-                        title="מידע מלא"
+                    </td>
+                    <td className="p-5">
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-1.5 font-bold text-slate-600">
+                          <Phone size={12} className="text-pink-400" />
+                          {lead.phone || "חסר"}
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold italic">
+                          <AtSign size={12} /> {lead.email || "אין"}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-5">
+                      <span
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black border inline-block ${
+                          SOURCES[lead.source]?.color || SOURCES["אחר"].color
+                        }`}
                       >
-                        <Info size={14} />
-                      </button>
-                      <div className="font-black text-slate-800 text-base">
-                        {lead.name || "ללא שם"}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-5">
-                    <div className="flex flex-col gap-0.5">
-                      <div className="flex items-center gap-1.5 font-bold text-slate-600">
-                        <Phone size={12} className="text-pink-400" />
-                        {lead.phone || "חסר"}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold italic">
-                        <AtSign size={12} /> {lead.email || "אין"}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-5">
-                    <span
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-black border inline-block ${
-                        SOURCES[lead.source]?.color || SOURCES["אחר"].color
-                      }`}
-                    >
-                      {lead.source}
-                    </span>
-                  </td>
-                  <td className="p-5">
-                    <EventTypeDropdown
-                      lead={lead}
-                      eventTypeDropdownOpen={eventTypeDropdownOpen}
-                      setEventTypeDropdownOpen={setEventTypeDropdownOpen}
-                      handleQuickEventTypeChange={handleQuickEventTypeChange}
-                      getDropdownPosition={getDropdownPosition}
-                    />
-                  </td>
-                  <td className="p-5 font-bold text-slate-500">
-                    {lead.city || "לא ידוע"}
-                  </td>
-                  <td className="p-5">
-                    <div className="flex flex-col">
-                      <span className="font-black text-slate-800 text-sm">
-                        {lead.age || "-"}
+                        {lead.source}
                       </span>
-                      <span className="text-slate-400 font-bold text-xs">
-                        {lead.job || "-"}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-5 font-black text-pink-600">
-                    ₪{lead.quote || 0}
-                  </td>
-                  <td className="p-5">
-                    <div className="flex items-center gap-1.5 font-bold text-blue-600 text-xs">
-                      📞 {formatIsraeliDate(lead.nextCallDate) || "אין"}
-                    </div>
-                  </td>
-                  <td className="p-5 font-bold text-emerald-600 text-xs">
-                    {formatIsraeliDate(lead.eventDate) || "טרם נקבע"}
-                  </td>
-                  <td className="p-5">
-                    {lead.eventType === "מאפס למקצוענית" &&
-                    lead.status === 3 &&
-                    lead.event2Date ? (
-                      <span className="font-bold text-purple-600 text-xs">
-                        🎂 {formatIsraeliDate(lead.event2Date)}
-                      </span>
-                    ) : (
-                      <span className="text-slate-300 text-xs">-</span>
-                    )}
-                  </td>
-                  <td className="p-5">
-                    <div className="flex justify-center gap-1">
-                      <button
-                        onClick={() => {
-                          setEditingLead(lead);
-                          setIsModalOpen(true);
-                        }}
-                        className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={async () => {
-                          if (window.confirm("למחוק את הליד?"))
-                            await deleteLead(lead.id);
-                        }}
-                        className="p-2 text-rose-400 hover:bg-rose-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
+                    </td>
+                    <td className="p-5">
+                      <EventTypeDropdown
+                        lead={lead}
+                        eventTypeDropdownOpen={eventTypeDropdownOpen}
+                        setEventTypeDropdownOpen={setEventTypeDropdownOpen}
+                        handleQuickEventTypeChange={handleQuickEventTypeChange}
+                        getDropdownPosition={getDropdownPosition}
+                      />
+                    </td>
+                    <td className="p-5 font-bold text-slate-500">
+                      {lead.city || "לא ידוע"}
+                    </td>
+                    <td className="p-5">
+                      <div className="flex flex-col">
+                        <span className="font-black text-slate-800 text-sm">
+                          {lead.age || "-"}
+                        </span>
+                        <span className="text-slate-400 font-bold text-xs">
+                          {lead.job || "-"}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-5 font-black text-pink-600">
+                      ₪{lead.quote || 0}
+                    </td>
+                    <td className="p-5">
+                      <div className="flex items-center gap-1.5 font-bold text-blue-600 text-xs">
+                        📞 {formatIsraeliDate(lead.nextCallDate) || "אין"}
+                      </div>
+                    </td>
+                    <td className="p-5 font-bold text-emerald-600 text-xs">
+                      {formatIsraeliDate(lead.eventDate) || "טרם נקבע"}
+                    </td>
+                    <td className="p-5">
+                      {lead.eventType === "מאפס למקצוענית" &&
+                      lead.status === 3 &&
+                      lead.event2Date ? (
+                        <span className="font-bold text-purple-600 text-xs">
+                          🎂 {formatIsraeliDate(lead.event2Date)}
+                        </span>
+                      ) : (
+                        <span className="text-slate-300 text-xs">-</span>
+                      )}
+                    </td>
+                    <td className="p-5">
+                      <div className="flex justify-center gap-1">
+                        <button
+                          onClick={() => {
+                            setEditingLead(lead);
+                            setIsModalOpen(true);
+                          }}
+                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (window.confirm("למחוק את הליד?"))
+                              await deleteLead(lead.id);
+                          }}
+                          className="p-2 text-rose-400 hover:bg-rose-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
               })}
             </tbody>
           </table>
@@ -940,16 +1020,34 @@ const MobileLeadCard = ({
 
     {/* Actions */}
     <div className="flex gap-2 pt-3 border-t border-slate-100">
+      {lead.phone && (
+        <a
+          href={`https://wa.me/972${lead.phone.replace(/^0/, "")}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-1 bg-emerald-500 text-white px-3 py-2.5 rounded-xl font-bold text-sm active:scale-95 transition-all flex items-center justify-center gap-1.5"
+        >
+          <MessageCircle size={16} />
+          וואטסאפ
+        </a>
+      )}
+      {lead.phone && (
+        <a
+          href={`tel:${lead.phone}`}
+          className="p-2.5 bg-blue-50 text-blue-500 rounded-xl transition-colors active:scale-95 flex items-center justify-center"
+        >
+          <Phone size={18} />
+        </a>
+      )}
       <button
         onClick={onEdit}
-        className="flex-1 bg-blue-500 text-white px-4 py-2.5 rounded-xl font-bold text-sm active:scale-95 transition-all flex items-center justify-center gap-2"
+        className="p-2.5 bg-slate-50 text-slate-500 hover:bg-slate-100 rounded-xl transition-colors active:scale-95"
       >
-        <Edit2 size={16} />
-        ערוך
+        <Edit2 size={18} />
       </button>
       <button
         onClick={onDelete}
-        className="p-2.5 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors active:scale-95"
+        className="p-2.5 text-rose-400 hover:bg-rose-50 rounded-xl transition-colors active:scale-95"
       >
         <Trash2 size={18} />
       </button>
@@ -1069,8 +1167,18 @@ const EventTypeDropdown = ({
 // ─── Date Range Picker (Booking.com style) ───────────────────────────────────
 
 const HEBREW_MONTHS = [
-  "ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני",
-  "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר",
+  "ינואר",
+  "פברואר",
+  "מרץ",
+  "אפריל",
+  "מאי",
+  "יוני",
+  "יולי",
+  "אוגוסט",
+  "ספטמבר",
+  "אוקטובר",
+  "נובמבר",
+  "דצמבר",
 ];
 const WEEK_DAYS = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"];
 
@@ -1102,8 +1210,14 @@ const DateRangePicker = ({ value, onChange, onApply, active }) => {
   const navMonth = (dir) => {
     let m = viewMonth + dir;
     let y = viewYear;
-    if (m < 0) { m = 11; y--; }
-    if (m > 11) { m = 0; y++; }
+    if (m < 0) {
+      m = 11;
+      y--;
+    }
+    if (m > 11) {
+      m = 0;
+      y++;
+    }
     setViewMonth(m);
     setViewYear(y);
   };
@@ -1124,10 +1238,14 @@ const DateRangePicker = ({ value, onChange, onApply, active }) => {
 
   const getEffectiveRange = () => {
     const from = tempFrom;
-    const to = selectingEnd && hoverDate
-      ? (tempFrom <= hoverDate ? hoverDate : tempFrom)
-      : tempTo;
-    const actualFrom = selectingEnd && hoverDate && hoverDate < tempFrom ? hoverDate : from;
+    const to =
+      selectingEnd && hoverDate
+        ? tempFrom <= hoverDate
+          ? hoverDate
+          : tempFrom
+        : tempTo;
+    const actualFrom =
+      selectingEnd && hoverDate && hoverDate < tempFrom ? hoverDate : from;
     return { from: actualFrom, to };
   };
 
@@ -1163,7 +1281,10 @@ const DateRangePicker = ({ value, onChange, onApply, active }) => {
 
         <div className="grid grid-cols-7 mb-1">
           {WEEK_DAYS.map((d) => (
-            <div key={d} className="text-center text-[10px] font-black text-slate-400 py-1">
+            <div
+              key={d}
+              className="text-center text-[10px] font-black text-slate-400 py-1"
+            >
               {d}
             </div>
           ))}
@@ -1176,14 +1297,20 @@ const DateRangePicker = ({ value, onChange, onApply, active }) => {
             const isStart = dateStr === rFrom;
             const isEnd = dateStr === rTo;
             const inRange = rFrom && rTo && dateStr > rFrom && dateStr < rTo;
-            const todayStr = toDateStr(today.getFullYear(), today.getMonth(), today.getDate());
+            const todayStr = toDateStr(
+              today.getFullYear(),
+              today.getMonth(),
+              today.getDate(),
+            );
             const isToday = dateStr === todayStr;
             const isFuture = dateStr > todayStr;
 
-            let dayClass = "relative flex items-center justify-center h-9 text-sm font-bold cursor-pointer select-none transition-all ";
+            let dayClass =
+              "relative flex items-center justify-center h-9 text-sm font-bold cursor-pointer select-none transition-all ";
 
             if (isStart || isEnd) {
-              dayClass += "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md z-10 ";
+              dayClass +=
+                "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md z-10 ";
               dayClass += isStart ? "rounded-r-full " : "rounded-l-full ";
             } else if (inRange) {
               dayClass += "bg-pink-50 text-pink-700 ";
@@ -1218,7 +1345,11 @@ const DateRangePicker = ({ value, onChange, onApply, active }) => {
   const nextYear = viewMonth === 11 ? viewYear + 1 : viewYear;
 
   const labelFrom = tempFrom ? formatIsraeliDate(tempFrom) : "בחרי תאריך";
-  const labelTo = tempTo ? formatIsraeliDate(tempTo) : selectingEnd ? "בחרי סיום" : "בחרי תאריך";
+  const labelTo = tempTo
+    ? formatIsraeliDate(tempTo)
+    : selectingEnd
+      ? "בחרי סיום"
+      : "בחרי תאריך";
 
   const handleApply = () => {
     if (!tempFrom || !tempTo) return;
@@ -1263,9 +1394,13 @@ const DateRangePicker = ({ value, onChange, onApply, active }) => {
                   {selectingEnd ? "בחרי תאריך סיום" : "בחרי תאריך התחלה"}
                 </p>
                 <div className="flex items-center gap-2 text-sm font-black">
-                  <span className="bg-white/20 rounded-lg px-3 py-1">{labelFrom}</span>
+                  <span className="bg-white/20 rounded-lg px-3 py-1">
+                    {labelFrom}
+                  </span>
                   <span className="opacity-60">→</span>
-                  <span className={`rounded-lg px-3 py-1 ${tempTo ? "bg-white/20" : "bg-white/10 opacity-60"}`}>
+                  <span
+                    className={`rounded-lg px-3 py-1 ${tempTo ? "bg-white/20" : "bg-white/10 opacity-60"}`}
+                  >
                     {labelTo}
                   </span>
                 </div>
